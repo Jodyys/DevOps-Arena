@@ -86,10 +86,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                // Apply namespace first
-                sh "kubectl apply -f k8s/application/namespace.yaml"
-                
-                // Apply manifests
+                // Apply application manifests (excluding cluster-scoped namespace)
                 sh "kubectl apply -f k8s/application/"
 
                 // Update images to the new DEPLOY_TAG
