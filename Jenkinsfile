@@ -5,6 +5,10 @@ pipeline {
         booleanParam(name: 'ROLLBACK_TEST', defaultValue: false, description: 'If true, deploys a broken image to simulate a rollback scenario.')
     }
 
+    triggers {
+        pollSCM('* * * * *') // Poll GitHub every minute
+    }
+
     environment {
         DOCKERHUB_CREDENTIALS = 'docker-hub-credentials'
         DOCKERHUB_USER = 'jodyys'
