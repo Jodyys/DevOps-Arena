@@ -43,7 +43,7 @@ spec:
       serviceAccountName: devops-arena-backend
       containers:
       - name: backend
-        image: jodyys/devops-arena-backend:INITIAL_DEPLOYMENT
+        image: jodyys/devops-arena:backend-INITIAL_DEPLOYMENT
         envFrom:
         - configMapRef:
             name: app-config

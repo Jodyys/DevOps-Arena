@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: jodyys/devops-arena-frontend:INITIAL_DEPLOYMENT
+        image: jodyys/devops-arena:frontend-INITIAL_DEPLOYMENT
         ports:
         - containerPort: 3001
         readinessProbe:
