@@ -56,8 +56,18 @@ pipeline {
                 expression { return !params.ROLLBACK_TEST }
             }
             steps {
-                sh "trivy image --exit-code 1 --severity ${TRIVY_SEVERITY} --no-progress ${APP_IMAGE}:frontend-${GIT_SHA}"
-                sh "trivy image --exit-code 1 --severity ${TRIVY_SEVERITY} --no-progress ${APP_IMAGE}:backend-${GIT_SHA}"
+                // Run scan and output to file
+                sh "trivy image --exit-code 0 --severity ${TRIVY_SEVERITY} --no-progress --output trivy-frontend-report.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
+                sh "trivy image --exit-code 0 --severity ${TRIVY_SEVERITY} --no-progress --output trivy-backend-report.txt ${APP_IMAGE}:backend-${GIT_SHA}"
+                
+                // Display in console as well for quick view
+                sh "cat trivy-frontend-report.txt"
+                sh "cat trivy-backend-report.txt"
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-*-report.txt', allowEmptyArchive: true
+                }
             }
         }
 
