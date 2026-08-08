@@ -23,7 +23,8 @@ spec:
       serviceAccountName: devops-arena-backend
       containers:
       - name: backend
-        image: jodyys/devops-arena:backend-INITIAL_DEPLOYMENT
+        image: devops-arena-backend:latest
+        imagePullPolicy: Never
         envFrom:
         - configMapRef:
             name: app-config

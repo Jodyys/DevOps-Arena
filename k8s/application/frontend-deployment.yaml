@@ -22,7 +22,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: jodyys/devops-arena:frontend-INITIAL_DEPLOYMENT
+        image: devops-arena-frontend:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 3001
         readinessProbe:
