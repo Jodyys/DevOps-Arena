@@ -28,7 +28,7 @@ pipeline {
         stage('Install & Test Backend') {
             steps {
                 dir('backend') {
-                    sh 'npm ci'
+                    sh 'npm install'
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
         stage('Install & Test Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'npm ci'
+                    sh 'npm install'
                 }
             }
         }
