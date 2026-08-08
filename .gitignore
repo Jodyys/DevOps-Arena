@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+.next/
+dist/
+coverage/
+
+*.log
+
+.DS_Store
+jenkins-kubeconfig.yaml
+k8s/application/secret.yaml

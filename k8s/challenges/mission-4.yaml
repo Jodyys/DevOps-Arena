@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-challenge
+  labels:
+    app: backend-challenge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-challenge
+  template:
+    metadata:
+      labels:
+        app: backend-challenge
+    spec:
+      containers:
+      - name: app
+        # BROKEN: Image does not exist
+        image: jodyys/devops-arena-backend:does-not-exist
+        ports:
+        - containerPort: 4000

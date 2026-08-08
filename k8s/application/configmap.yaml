@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: ns-devops-arena
+data:
+  NODE_ENV: "production"
+  PORT: "4000"
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "devopsarena"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_URL: "redis://redis-service:6379"
