@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-config
+  namespace: ns-challenges
+  labels:
+    app: network-config
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: network-config
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: network-config
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /app
+            echo '{"port": 80}' > /app/config.json
+            while true; do sleep 3600; done

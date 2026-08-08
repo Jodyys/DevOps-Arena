@@ -8,5 +8,6 @@ const authMiddleware = require('../middleware/auth');
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
 router.get('/me', authMiddleware, authController.getMe);
+router.post('/reset', authMiddleware, authController.resetGame);
 
 module.exports = router;

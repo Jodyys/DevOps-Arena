@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cicd-m23
+  namespace: ns-challenges
+  labels:
+    app: cicd-m23
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cicd-m23
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: cicd-m23
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /workspace
+            cat << 'EOF' > /workspace/Dockerfile
+            WORKDIR /app
+            COPY . .
+            RUN npm install
+            CMD ["npm", "start"]
+            EOF
+            while true; do sleep 3600; done

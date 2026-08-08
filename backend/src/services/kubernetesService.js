@@ -34,6 +34,8 @@ const k8sNetworkingApi = kc.makeApiClient(k8s.NetworkingV1Api);
 
 const CHALLENGE_NAMESPACE = 'ns-challenges';
 
+const { challengeValidator } = require('./challengeValidator');
+
 /**
  * Validates the solution against the Kubernetes cluster state.
  * @param {number} missionId 
@@ -42,58 +44,7 @@ const CHALLENGE_NAMESPACE = 'ns-challenges';
  */
 async function validateChallenge(missionId, challengeId) {
   const labelSelector = `challenge-id=${challengeId}`;
-  
-  try {
-    switch (missionId) {
-      case 4: // Fix ImagePullBackOff
-      case 5: // Fix CrashLoopBackOff
-        // Check if pod is running
-        const pods = await k8sApi.listNamespacedPod(CHALLENGE_NAMESPACE, undefined, undefined, undefined, undefined, labelSelector);
-        const backendPod = pods.body.items.find(p => p.metadata.labels && p.metadata.labels.app === 'backend-challenge');
-        if (backendPod && backendPod.status.phase === 'Running') {
-          // Check if all containers are ready
-          const allReady = backendPod.status.containerStatuses && backendPod.status.containerStatuses.every(c => c.ready);
-          if (allReady) return true;
-        }
-        return false;
-
-      case 6: // Service Selector Mismatch
-        // Check if service has active endpoints
-        const endpoints = await k8sApi.listNamespacedEndpoints(CHALLENGE_NAMESPACE, undefined, undefined, undefined, undefined, labelSelector);
-        const serviceEndpoint = endpoints.body.items.find(e => e.metadata.name.includes('backend-service'));
-        
-        if (serviceEndpoint && serviceEndpoint.subsets && serviceEndpoint.subsets.length > 0) {
-          const addresses = serviceEndpoint.subsets[0].addresses;
-          if (addresses && addresses.length > 0) {
-            return true;
-          }
-        }
-        return false;
-
-      case 7: // Fix Ingress 502
-        // Check if ingress backend port is corrected to 80
-        const ingresses = await k8sNetworkingApi.listNamespacedIngress(CHALLENGE_NAMESPACE, undefined, undefined, undefined, undefined, labelSelector);
-        const ingress = ingresses.body.items.find(i => i.metadata.name.includes('backend-ingress'));
-        
-        if (ingress) {
-          const rules = ingress.spec.rules;
-          if (rules && rules.length > 0) {
-            const paths = rules[0].http.paths;
-            if (paths && paths.length > 0) {
-              const port = paths[0].backend.service.port.number;
-              if (port === 80) return true;
-            }
-          }
-        }
-        return false;
-
-      default:
-        return false;
-    }
-  } catch (err) {
-    console.error(`Validation error for mission ${missionId} with label ${labelSelector}:`, err.message);
-    return false;
-  }
+  return await challengeValidator(missionId, k8sApi, k8sAppApi, k8sNetworkingApi, CHALLENGE_NAMESPACE, labelSelector);
 }
 
 /**
@@ -114,17 +65,11 @@ async function startChallenge(missionId, userId) {
       return challengeId; // Reuse existing challenge
     }
 
-    // Determine which YAML to load based on missionId
-    let challengeFile = '';
-    if (missionId >= 4 && missionId <= 7) {
-      challengeFile = `mission-${missionId}.yaml`;
-    } else {
-      return null;
-    }
+    let challengeFile = `mission-${missionId}.yaml`;
 
     const yamlPath = path.join(__dirname, '../../../../k8s/challenges', challengeFile);
     if (!fs.existsSync(yamlPath)) {
-      throw new Error(`Challenge YAML not found: ${yamlPath}`);
+      return null;
     }
 
     const fileContent = fs.readFileSync(yamlPath, 'utf8');

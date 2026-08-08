@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-pull-challenge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-pull-challenge
+  template:
+    metadata:
+      labels:
+        app: image-pull-challenge
+    spec:
+      containers:
+      - name: app
+        image: nginx:this-image-does-not-exist
+        ports:
+        - containerPort: 80

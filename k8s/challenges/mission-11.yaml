@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linux-perms-challenge
+  labels:
+    app: linux-perms-challenge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: linux-perms-challenge
+  template:
+    metadata:
+      labels:
+        app: linux-perms-challenge
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          mkdir -p /app
+          echo '#!/bin/sh' > /app/script.sh
+          echo 'echo "Success! Script executed."' >> /app/script.sh
+          chmod 644 /app/script.sh
+          
+          # Keep pod running
+          while true; do sleep 3600; done
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"

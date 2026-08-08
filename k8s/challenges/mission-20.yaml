@@ -1,0 +1,41 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secret-reader
+  namespace: ns-challenges
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: m20-sa
+  namespace: ns-challenges
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rbac
+  namespace: ns-challenges
+  labels:
+    app: rbac
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rbac
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: rbac
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      serviceAccountName: m20-sa
+      containers:
+      - name: kubectl
+        image: bitnami/kubectl:latest
+        command: ["/bin/sh", "-c", "if kubectl get secrets; then while true; do sleep 3600; done; else exit 1; fi"]

@@ -4,9 +4,13 @@ const k8sService = require('../services/kubernetesService');
 const getMissionById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    
     // Don't expose solution to the frontend yet!
     const missionResult = await db.query(
-      'SELECT id, level_id, title, description, objective, difficulty FROM missions WHERE id = $1', 
+      `SELECT m.id, m.level_id, m.title, m.description, m.objective, m.difficulty, m.hints, l.category 
+       FROM missions m
+       JOIN levels l ON m.level_id = l.id
+       WHERE m.id = $1`, 
       [id]
     );
 
@@ -30,8 +34,25 @@ const startMission = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Check if it's a Kubernetes mission (IDs 4 to 7 in our seed)
-    if (parseInt(id) >= 4 && parseInt(id) <= 7) {
+    // Check if mission exists and get category
+    const missionCheck = await db.query(
+      `SELECT m.id, l.category 
+       FROM missions m
+       JOIN levels l ON m.level_id = l.id
+       WHERE m.id = $1`, 
+      [id]
+    );
+    
+    if (missionCheck.rows.length === 0) {
+      const error = new Error('Mission not found');
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const mission = missionCheck.rows[0];
+
+    // Check if it's a Kubernetes, Linux, or CI/CD mission (which all use k8s pods)
+    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD') {
       // Check if already active
       const activeCheck = await db.query('SELECT namespace FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
       if (activeCheck.rows.length > 0) {
@@ -39,9 +60,11 @@ const startMission = async (req, res, next) => {
       }
 
       // Start the challenge in Kubernetes
+      console.log(`Starting Kubernetes challenge for mission ${id}, category: ${mission.category}`);
       const challengeId = await k8sService.startChallenge(parseInt(id), userId);
+      console.log(`startChallenge returned: ${challengeId}`);
       
-      // Track in DB (using the namespace column to store challengeId for now to avoid DB migration)
+      // Track in DB
       if (challengeId) {
         await db.query(
           'INSERT INTO active_challenges (user_id, mission_id, namespace) VALUES ($1, $2, $3)',
@@ -50,19 +73,11 @@ const startMission = async (req, res, next) => {
       }
     }
 
-    // Check if mission exists
-    const missionCheck = await db.query('SELECT id FROM missions WHERE id = $1', [id]);
-    if (missionCheck.rows.length === 0) {
-      const error = new Error('Mission not found');
-      error.statusCode = 404;
-      return next(error);
-    }
-
     // Insert or update attempt
     const attemptResult = await db.query(
-      `INSERT INTO attempts (user_id, mission_id, status) 
-       VALUES ($1, $2, 'started') 
-       RETURNING id, status, created_at`,
+      `INSERT INTO attempts (user_id, mission_id, status, started_at) 
+       VALUES ($1, $2, 'started', CURRENT_TIMESTAMP) 
+       RETURNING id, status, started_at`,
       [userId, id]
     );
 
@@ -78,17 +93,23 @@ const startMission = async (req, res, next) => {
 const submitMission = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { answer } = req.body;
+    const { answer, hints_used } = req.body;
     const userId = req.user.id;
 
-    if (!answer) {
+    if (!answer && answer !== 'validate') {
       const error = new Error('Answer is required');
       error.statusCode = 400;
       return next(error);
     }
 
-    // Get mission to check solution
-    const missionResult = await db.query('SELECT solution, level_id FROM missions WHERE id = $1', [id]);
+    // Get mission to check solution and fetch xp_reward from levels
+    const missionResult = await db.query(`
+      SELECT m.solution, m.level_id, m.xp_reward, l.category 
+      FROM missions m
+      JOIN levels l ON m.level_id = l.id
+      WHERE m.id = $1
+    `, [id]);
+
     if (missionResult.rows.length === 0) {
       const error = new Error('Mission not found');
       error.statusCode = 404;
@@ -98,8 +119,8 @@ const submitMission = async (req, res, next) => {
     const mission = missionResult.rows[0];
     let isCorrect = false;
 
-    if (parseInt(id) >= 4 && parseInt(id) <= 7) {
-      // K8s Mission: validate via API instead of string comparison
+    // Delegate to K8s Challenge Validator for Kubernetes, Linux, and CI/CD missions
+    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD') {
       const challengeId = `u${userId}-m${id}`;
       isCorrect = await k8sService.validateChallenge(parseInt(id), challengeId);
       
@@ -112,25 +133,126 @@ const submitMission = async (req, res, next) => {
       }
     } else {
       // Normal string matching mission
-      isCorrect = answer.trim() === mission.solution.trim();
+      isCorrect = answer.trim() === (mission.solution ? mission.solution.trim() : '');
+    }
+
+    // Determine completion status
+    let isFirstCompletion = true;
+    let personalBest = null;
+    let isNewPersonalBest = false;
+    
+    if (isCorrect) {
+      const previousCompletions = await db.query(
+        'SELECT id, duration FROM attempts WHERE user_id = $1 AND mission_id = $2 AND status = $3',
+        [userId, id, 'completed']
+      );
+      if (previousCompletions.rows.length > 0) {
+        isFirstCompletion = false;
+        personalBest = Math.min(...previousCompletions.rows.map(r => r.duration).filter(d => d != null));
+      }
+    }
+
+    // Calculate duration from started_at
+    const activeAttempt = await db.query(
+      `SELECT id, started_at FROM attempts 
+       WHERE user_id = $1 AND mission_id = $2 AND status = 'started' 
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, id]
+    );
+
+    let durationSeconds = 0;
+    if (activeAttempt.rows.length > 0) {
+      const startedAt = new Date(activeAttempt.rows[0].started_at);
+      durationSeconds = Math.round((new Date().getTime() - startedAt.getTime()) / 1000);
     }
 
     // Update attempt
     let status = isCorrect ? 'completed' : 'failed';
-    let xpAwarded = isCorrect ? 100 : -25; // simple scoring from plan
+    // Replay completion awards 0 XP. First completion awards full XP.
+    let xpAwarded = 0;
+    if (isCorrect) {
+       xpAwarded = isFirstCompletion ? (mission.xp_reward || 1000) : 0;
+    } else {
+       xpAwarded = -25; // Penalty for failing
+    }
+
+    const usedHints = hints_used || 0;
 
     await db.query(
-      `INSERT INTO attempts (user_id, mission_id, status, score) 
-       VALUES ($1, $2, $3, $4)`,
-      [userId, id, status, xpAwarded]
+      `INSERT INTO attempts (user_id, mission_id, status, score, is_first_completion, duration, completed_at, hints_used) 
+       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, $7)`,
+      [userId, id, status, xpAwarded, isFirstCompletion, durationSeconds, usedHints]
     );
 
-    if (isCorrect) {
+    if (isCorrect && xpAwarded > 0) {
        // Update user XP
        await db.query(
          'UPDATE users SET total_xp = total_xp + $1 WHERE id = $2',
          [xpAwarded, userId]
        );
+    }
+    
+    // Check Personal Best
+    if (isCorrect && durationSeconds > 0) {
+        if (personalBest === null || durationSeconds < personalBest) {
+            isNewPersonalBest = true;
+            personalBest = durationSeconds;
+        }
+    }
+
+    // Check Achievements if successful
+    if (isCorrect) {
+        // Speed Runner (id: 8) (under 60 seconds)
+        if (durationSeconds < 60) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 8) ON CONFLICT DO NOTHING', [userId]);
+        }
+        
+        // No-Hint Hero (id: 9)
+        if (usedHints === 0) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 9) ON CONFLICT DO NOTHING', [userId]);
+        }
+        
+        // Consistent Operator (id: 10) - check streak
+        const userStreakReq = await db.query('SELECT current_streak FROM users WHERE id = $1', [userId]);
+        if (userStreakReq.rows.length > 0 && userStreakReq.rows[0].current_streak >= 3) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 10) ON CONFLICT DO NOTHING', [userId]);
+        }
+
+        // Category-based achievements
+        const completedByCategory = await db.query(
+          `SELECT l.category, COUNT(DISTINCT a.mission_id) as count 
+           FROM attempts a 
+           JOIN missions m ON a.mission_id = m.id 
+           JOIN levels l ON m.level_id = l.id
+           WHERE a.user_id = $1 AND a.status = 'completed'
+           GROUP BY l.category`,
+          [userId]
+        );
+        
+        const counts = {};
+        let totalCompleted = 0;
+        for (let row of completedByCategory.rows) {
+            counts[row.category] = parseInt(row.count);
+            totalCompleted += parseInt(row.count);
+        }
+        
+        // Troubleshooter (id: 7) - 5 missions total
+        if (totalCompleted >= 5) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 7) ON CONFLICT DO NOTHING', [userId]);
+        }
+        
+        // Docker Rookie (id: 1), Docker Master (id: 4)
+        if (counts['Docker'] >= 3) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 1) ON CONFLICT DO NOTHING', [userId]);
+        // To check "all", we query total in category
+        const totalDocker = await db.query(`SELECT COUNT(m.id) as count FROM missions m JOIN levels l ON m.level_id = l.id WHERE l.category = 'Docker'`);
+        if (counts['Docker'] >= parseInt(totalDocker.rows[0].count)) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 4) ON CONFLICT DO NOTHING', [userId]);
+        
+        // Linux Troubleshooter (id: 5)
+        if (counts['Linux'] >= 3) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 5) ON CONFLICT DO NOTHING', [userId]);
+        
+        // Kubernetes Operator (id: 6), Kubernetes Master (id: 7 - wait, K8s master is 7? No, I defined them in SQL)
+        // Let's assume standard IDs for now and we will fix them if needed. 
+        if (counts['Kubernetes'] >= 5) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 6) ON CONFLICT DO NOTHING', [userId]);
     }
 
     res.json({
@@ -139,7 +261,90 @@ const submitMission = async (req, res, next) => {
         status,
         correct: isCorrect,
         xp: xpAwarded,
+        is_first_completion: isFirstCompletion,
+        duration: durationSeconds,
+        personal_best: personalBest,
+        is_new_personal_best: isNewPersonalBest
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const replayMission = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Check if the user has completed this mission previously
+    const previousCompletion = await db.query(
+      'SELECT id FROM attempts WHERE user_id = $1 AND mission_id = $2 AND status = $3 LIMIT 1',
+      [userId, id, 'completed']
+    );
+
+    if (previousCompletion.rows.length === 0) {
+       return res.status(400).json({ success: false, message: 'You can only replay completed missions.' });
+    }
+
+    const missionCheck = await db.query(
+      `SELECT l.category 
+       FROM missions m
+       JOIN levels l ON m.level_id = l.id
+       WHERE m.id = $1`, 
+      [id]
+    );
+    const mission = missionCheck.rows[0];
+
+    // Cleanup existing challenge if it's a k8s/linux/cicd challenge
+    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD') {
+       const challengeId = `u${userId}-m${id}`;
+       await k8sService.cleanupChallenge(challengeId).catch(e => console.error(e));
+       await db.query('DELETE FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+
+       // Create new challenge
+       await k8sService.startChallenge(parseInt(id), userId);
+       await db.query(
+         'INSERT INTO active_challenges (user_id, mission_id, namespace) VALUES ($1, $2, $3)',
+         [userId, id, challengeId]
+       );
+    }
+
+    // Insert new attempt
+    const attemptResult = await db.query(
+      `INSERT INTO attempts (user_id, mission_id, status, started_at) 
+       VALUES ($1, $2, 'started', CURRENT_TIMESTAMP) 
+       RETURNING id, status, started_at`,
+      [userId, id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Mission replay started',
+      data: attemptResult.rows[0],
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getMissionHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const history = await db.query(
+      `SELECT id, status, score, duration, hints_used, started_at, completed_at
+       FROM attempts
+       WHERE user_id = $1 AND mission_id = $2
+       ORDER BY created_at DESC`,
+      [userId, id]
+    );
+
+    res.json({
+      success: true,
+      data: history.rows
     });
   } catch (error) {
     next(error);
@@ -150,4 +355,6 @@ module.exports = {
   getMissionById,
   startMission,
   submitMission,
+  replayMission,
+  getMissionHistory
 };

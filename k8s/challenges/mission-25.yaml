@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cicd-m25
+  namespace: ns-challenges
+  labels:
+    app: cicd-m25
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cicd-m25
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: cicd-m25
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /workspace
+            cat << 'EOF' > /workspace/push.sh
+            #!/bin/sh
+            echo "Building image..."
+            docker build -t myapp:latest .
+            echo "Pushing image..."
+            docker push myapp:latest
+            EOF
+            chmod +x /workspace/push.sh
+            while true; do sleep 3600; done

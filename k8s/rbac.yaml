@@ -26,7 +26,7 @@ metadata:
 rules:
   # Least privilege: Only allow managing resources inside the ns-challenges namespace
   - apiGroups: ["", "apps", "networking.k8s.io"]
-    resources: ["pods", "deployments", "services", "configmaps", "secrets", "ingress", "ingresses", "endpoints"]
+    resources: ["pods", "pods/exec", "deployments", "services", "configmaps", "secrets", "ingress", "ingresses", "endpoints"]
     verbs: ["create", "get", "list", "watch", "delete", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cicd-m24
+  namespace: ns-challenges
+  labels:
+    app: cicd-m24
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cicd-m24
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: cicd-m24
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /workspace
+            cat << 'EOF' > /workspace/run-tests.sh
+            #!/bin/sh
+            DB_HOST=localhost
+            echo "Connecting to $DB_HOST..."
+            if [ "$DB_HOST" != "db-server" ]; then
+              echo "Failed to connect to database"
+              exit 1
+            fi
+            echo "Integration tests passed!"
+            EOF
+            chmod +x /workspace/run-tests.sh
+            while true; do sleep 3600; done

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-analysis
+  namespace: ns-challenges
+  labels:
+    app: log-analysis
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-analysis
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: log-analysis
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /var/log /app
+            echo "INFO: App started" > /var/log/app.log
+            echo "DEBUG: Loading config" >> /var/log/app.log
+            echo "CRITICAL_ERROR: ERR-59021" >> /var/log/app.log
+            echo "INFO: App crashed" >> /var/log/app.log
+            while true; do sleep 3600; done

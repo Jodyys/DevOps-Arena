@@ -1,5 +1,9 @@
 const errorHandler = (err, req, res, next) => {
-  req.log.error({ err }, 'Unhandled error');
+  if (req.log) {
+    req.log.error({ err }, 'Unhandled error');
+  } else {
+    console.error('Unhandled error:', err);
+  }
 
   if (err.name === 'ZodError') {
     return res.status(400).json({
