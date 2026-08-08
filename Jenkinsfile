@@ -71,7 +71,7 @@ pipeline {
             }
         }
 
-        stage('Push to Docker Hub (SHA Tag)') {
+        stage('Push to Docker Hub') {
             when {
                 expression { return !params.ROLLBACK_TEST }
             }
