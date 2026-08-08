@@ -42,3 +42,23 @@ roleRef:
   kind: Role
   name: challenge-manager-role
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devops-arena-backend
+  namespace: ns-devops-arena
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devops-arena-backend-cross-namespace-binding
+  namespace: ns-challenges
+subjects:
+  - kind: ServiceAccount
+    name: devops-arena-backend
+    namespace: ns-devops-arena
+roleRef:
+  kind: Role
+  name: challenge-manager-role
+  apiGroup: rbac.authorization.k8s.io
