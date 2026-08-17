@@ -72,8 +72,9 @@ async function startChallenge(missionId, userId) {
       return null;
     }
 
-    const fileContent = fs.readFileSync(yamlPath, 'utf8');
-    const manifests = yaml.loadAll(fileContent);
+    const rawManifestContent = await fs.promises.readFile(yamlPath, 'utf8');
+    const manifestContent = rawManifestContent.replace(/\$\{CHALLENGE_ID\}/g, challengeId);
+    const manifests = yaml.loadAll(manifestContent);
 
     // Deploy all documents in the YAML with label injection
     for (const manifest of manifests) {
@@ -99,6 +100,35 @@ async function startChallenge(missionId, userId) {
         if (!manifest.spec.selector) manifest.spec.selector = {};
         if (!manifest.spec.selector.matchLabels) manifest.spec.selector.matchLabels = {};
         manifest.spec.selector.matchLabels['challenge-id'] = challengeId;
+
+        // Also rename configMapRefs and secretRefs to match the dynamically prefixed ConfigMap/Secret names
+        if (manifest.spec.template.spec && manifest.spec.template.spec.containers) {
+          for (let container of manifest.spec.template.spec.containers) {
+            if (container.envFrom) {
+              for (let env of container.envFrom) {
+                if (env.configMapRef && env.configMapRef.name) {
+                  env.configMapRef.name = `${challengeId}-${env.configMapRef.name}`;
+                }
+                if (env.secretRef && env.secretRef.name) {
+                  env.secretRef.name = `${challengeId}-${env.secretRef.name}`;
+                }
+              }
+            }
+          }
+        }
+        
+        // Also rename ingress backend service names
+        if (kind === 'Ingress' && manifest.spec && manifest.spec.rules) {
+          for (let rule of manifest.spec.rules) {
+            if (rule.http && rule.http.paths) {
+              for (let path of rule.http.paths) {
+                if (path.backend && path.backend.service && path.backend.service.name) {
+                  path.backend.service.name = `${challengeId}-${path.backend.service.name}`;
+                }
+              }
+            }
+          }
+        }
       }
       
       try {
@@ -117,6 +147,26 @@ async function startChallenge(missionId, userId) {
         }
       } catch (applyErr) {
         console.error(`Error applying ${kind}:`, applyErr.body ? applyErr.body.message : applyErr.message);
+      }
+    }
+
+    if (missionId === 41) {
+      console.log(`Mission 41: Creating broken revision 2...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const depName = `${challengeId}-m41-rollback`;
+      try {
+        const patch = [
+          {
+            "op": "replace",
+            "path": "/spec/template/spec/containers/0/image",
+            "value": "nginx:does-not-exist"
+          }
+        ];
+        const options = { headers: { "Content-type": k8s.PatchUtils.PATCH_FORMAT_JSON_PATCH } };
+        await k8sAppApi.patchNamespacedDeployment(depName, CHALLENGE_NAMESPACE, patch, undefined, undefined, undefined, undefined, undefined, options);
+        console.log(`Mission 41: Revision 2 created for ${depName}`);
+      } catch (patchErr) {
+        console.error(`Error patching M41 deployment:`, patchErr.body ? patchErr.body.message : patchErr.message);
       }
     }
 

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m41-rollback
+  namespace: ns-challenges
+  labels:
+    app: m41-rollback
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m41-rollback
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m41-rollback
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"

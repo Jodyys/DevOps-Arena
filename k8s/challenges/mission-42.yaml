@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m42-devsecops
+  namespace: ns-challenges
+  labels:
+    app: m42-devsecops
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m42-devsecops
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m42-devsecops
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          cat << 'EOF' > /workspace/Dockerfile
+          FROM alpine:3.10
+          
+          RUN apk add --no-cache curl
+          EOF
+          
+          cat << 'EOF' > /workspace/trivy_report.txt
+          Target: alpine:3.10 (alpine 3.10.3)
+          Total: 1 (CRITICAL: 1)
+          
+          Vulnerability ID: CVE-2022-XXXXX
+          Severity: CRITICAL
+          Description: A vulnerability exists in an old version of the Alpine base image.
+          Recommendation: Update the base image to alpine:3.20 or alpine:latest.
+          EOF
+          while true; do sleep 3600; done
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+      volumes:
+      - name: workspace
+        emptyDir: {}

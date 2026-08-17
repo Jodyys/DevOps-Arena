@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m40-image-tag
+  namespace: ns-challenges
+  labels:
+    app: m40-image-tag
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m40-image-tag
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m40-image-tag
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: nginx
+        image: jodyys/devops-arena-backend:does-not-exist
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"

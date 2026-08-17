@@ -136,7 +136,12 @@ const validateLinuxCommand = async (k8sApi, namespace, labelSelector, command, e
       
       exec.exec(namespace, pod.metadata.name, 'alpine', command, outStream, errStream, null, true, 
         (status) => {
-          if (output.includes(expectedOutput)) {
+          console.log(`[VALIDATE ${pod.metadata.name}] Status: ${JSON.stringify(status)}`);
+          console.log(`[VALIDATE ${pod.metadata.name}] Command: ${command.join(' ')}`);
+          console.log(`[VALIDATE ${pod.metadata.name}] Output: ${output}`);
+          if (expectedOutput === 'EXIT_CODE_0') {
+            resolve(status && status.status === 'Success');
+          } else if (output.includes(expectedOutput)) {
             resolve(true);
           } else {
             resolve(false);
@@ -153,6 +158,26 @@ const validateLinuxCommand = async (k8sApi, namespace, labelSelector, command, e
   }
 };
 
+const validateDockerComposeConfig = async (k8sApi, namespace, labelSelector) => {
+  return await validateLinuxCommand(k8sApi, namespace, labelSelector, ['/bin/sh', '-c', 'grep "80:80" /workspace/docker-compose.yml | grep -v "8080:80"'], 'EXIT_CODE_0');
+};
+
+const validateLinuxFileStat = async (k8sApi, namespace, labelSelector) => {
+  return await validateLinuxCommand(k8sApi, namespace, labelSelector, ['/bin/sh', '-c', 'stat -c "%a" /app/config.txt | grep "644"'], 'EXIT_CODE_0');
+};
+
+const validateDockerfileFix = async (k8sApi, namespace, labelSelector) => {
+  return await validateLinuxCommand(k8sApi, namespace, labelSelector, ['/bin/sh', '-c', 'grep -E "CMD.*npm.*start" /workspace/Dockerfile'], 'EXIT_CODE_0');
+};
+
+const validateJenkinsfileFix = async (k8sApi, namespace, labelSelector) => {
+  return await validateLinuxCommand(k8sApi, namespace, labelSelector, ['/bin/sh', '-c', 'grep -E "npm run test" /workspace/Jenkinsfile'], 'EXIT_CODE_0');
+};
+
+const validateTrivyDockerfileFix = async (k8sApi, namespace, labelSelector) => {
+  return await validateLinuxCommand(k8sApi, namespace, labelSelector, ['/bin/sh', '-c', 'grep -E "FROM alpine:(latest|3\\.20)" /workspace/Dockerfile'], 'EXIT_CODE_0');
+};
+
 const challengeValidator = async (missionId, k8sApi, k8sAppApi, k8sNetworkingApi, namespace, labelSelector) => {
   try {
     switch (missionId) {
@@ -163,7 +188,15 @@ const challengeValidator = async (missionId, k8sApi, k8sAppApi, k8sNetworkingApi
       case 18: // ImagePullBackOff
       case 19: // CrashLoopBackOff (Env Var)
       case 20: // Fix RBAC (ServiceAccount)
+      case 33: // ConfigMap Value Misconfiguration
+      case 36: // Kubernetes CrashLoopBackOff
+      case 37: // Kubernetes Secret Configuration
+      case 40: // Docker Image Tag Failure
+      case 41: // Kubernetes Deployment Rollback
         return await validatePodRunning(k8sApi, namespace, labelSelector);
+        
+      case 34: // Fix Failed Kubernetes Deployment
+        return await validateDeployment(k8sAppApi, namespace, labelSelector);
         
       case 6: // Service Selector Mismatch
       case 9: // Service Not Reachable (obsolete but kept for backwards compat)
@@ -171,10 +204,26 @@ const challengeValidator = async (missionId, k8sApi, k8sAppApi, k8sNetworkingApi
         return await validateService(k8sApi, namespace, labelSelector);
         
       case 7: // Fix Ingress 502
+      case 38: // Kubernetes Ingress / 502
         return await validateIngress(k8sNetworkingApi, namespace, labelSelector, 80);
 
       case 11: // Linux File Permissions
         return await validateLinuxPermissions(k8sApi, namespace, labelSelector);
+
+      case 31: // Docker - Container Port Misconfiguration
+        return await validateDockerComposeConfig(k8sApi, namespace, labelSelector);
+
+      case 32: // Linux - Broken File Permissions
+        return await validateLinuxFileStat(k8sApi, namespace, labelSelector);
+        
+      case 35: // Docker - Dockerfile Build Failure
+        return await validateDockerfileFix(k8sApi, namespace, labelSelector);
+        
+      case 39: // CI/CD Pipeline Failure
+        return await validateJenkinsfileFix(k8sApi, namespace, labelSelector);
+        
+      case 42: // Trivy / Container Security
+        return await validateTrivyDockerfileFix(k8sApi, namespace, labelSelector);
 
       case 12: // Zombie Process Hunt
         return await validateLinuxCommand(k8sApi, namespace, labelSelector, ['/bin/sh', '-c', 'ps aux | grep rogue.sh | grep -v grep || echo YES'], 'YES');

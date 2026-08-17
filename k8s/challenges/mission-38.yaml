@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m38-ingress-deploy
+  namespace: ns-challenges
+  labels:
+    app: m38-ingress
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m38-ingress
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m38-ingress
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m38-ingress-svc
+  namespace: ns-challenges
+  labels:
+    app: m38-ingress
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  selector:
+    app: m38-ingress
+    challenge-id: ${CHALLENGE_ID}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: m38-ingress
+  namespace: ns-challenges
+  labels:
+    app: m38-ingress
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ${CHALLENGE_ID}.devops-arena.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: m38-ingress-svc
+            port:
+              number: 8080

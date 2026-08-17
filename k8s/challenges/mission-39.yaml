@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m39-cicd-pipeline
+  namespace: ns-challenges
+  labels:
+    app: m39-cicd
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m39-cicd
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m39-cicd
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          cat << 'EOF' > /workspace/Jenkinsfile
+          pipeline {
+            agent any
+            stages {
+              stage('Test') {
+                steps {
+                  sh 'npm run tesst'
+                }
+              }
+            }
+          }
+          EOF
+          while true; do sleep 3600; done
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+      volumes:
+      - name: workspace
+        emptyDir: {}

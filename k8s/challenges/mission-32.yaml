@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m32-linux-perms
+  namespace: ns-challenges
+  labels:
+    app: m32-linux-perms
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m32-linux-perms
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m32-linux-perms
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      initContainers:
+      - name: init-perms
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          mkdir -p /app
+          echo 'secret_config_value' > /app/config.txt
+          chown 1000:1000 /app/config.txt
+          chmod 000 /app/config.txt
+        volumeMounts:
+        - name: app-vol
+          mountPath: /app
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c", "while true; do sleep 3600; done"]
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: app-vol
+          mountPath: /app
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
+      volumes:
+      - name: app-vol
+        emptyDir: {}

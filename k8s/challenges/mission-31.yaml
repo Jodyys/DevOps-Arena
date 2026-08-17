@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m31-docker-port
+  namespace: ns-challenges
+  labels:
+    app: m31-docker-port
+    challenge-id: ${CHALLENGE_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m31-docker-port
+      challenge-id: ${CHALLENGE_ID}
+  template:
+    metadata:
+      labels:
+        app: m31-docker-port
+        challenge-id: ${CHALLENGE_ID}
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          mkdir -p /workspace
+          echo 'version: "3"' > /workspace/docker-compose.yml
+          echo 'services:' >> /workspace/docker-compose.yml
+          echo '  web:' >> /workspace/docker-compose.yml
+          echo '    image: nginx' >> /workspace/docker-compose.yml
+          echo '    ports:' >> /workspace/docker-compose.yml
+          echo '      - "8080:80"' >> /workspace/docker-compose.yml
+          while true; do sleep 3600; done
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"

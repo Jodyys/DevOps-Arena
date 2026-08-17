@@ -52,7 +52,7 @@ const startMission = async (req, res, next) => {
     const mission = missionCheck.rows[0];
 
     // Check if it's a Kubernetes, Linux, or CI/CD mission (which all use k8s pods)
-    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD') {
+    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35) {
       // Check if already active
       const activeCheck = await db.query('SELECT namespace FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
       if (activeCheck.rows.length > 0) {
@@ -120,7 +120,7 @@ const submitMission = async (req, res, next) => {
     let isCorrect = false;
 
     // Delegate to K8s Challenge Validator for Kubernetes, Linux, and CI/CD missions
-    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD') {
+    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35) {
       const challengeId = `u${userId}-m${id}`;
       isCorrect = await k8sService.validateChallenge(parseInt(id), challengeId);
       
@@ -242,7 +242,7 @@ const submitMission = async (req, res, next) => {
         }
         
         // Docker Rookie (id: 1), Docker Master (id: 4)
-        if (counts['Docker'] >= 3) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 1) ON CONFLICT DO NOTHING', [userId]);
+        if (counts['Docker'] >= 1) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 1) ON CONFLICT DO NOTHING', [userId]);
         // To check "all", we query total in category
         const totalDocker = await db.query(`SELECT COUNT(m.id) as count FROM missions m JOIN levels l ON m.level_id = l.id WHERE l.category = 'Docker'`);
         if (counts['Docker'] >= parseInt(totalDocker.rows[0].count)) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 4) ON CONFLICT DO NOTHING', [userId]);
@@ -250,9 +250,24 @@ const submitMission = async (req, res, next) => {
         // Linux Troubleshooter (id: 5)
         if (counts['Linux'] >= 3) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 5) ON CONFLICT DO NOTHING', [userId]);
         
-        // Kubernetes Operator (id: 6), Kubernetes Master (id: 7 - wait, K8s master is 7? No, I defined them in SQL)
-        // Let's assume standard IDs for now and we will fix them if needed. 
+        // Kubernetes Operator (id: 6)
         if (counts['Kubernetes'] >= 5) await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 6) ON CONFLICT DO NOTHING', [userId]);
+
+        // Rollback Master (id: 11) - completed M41
+        if (parseInt(id) === 41) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 11) ON CONFLICT DO NOTHING', [userId]);
+        }
+
+        // DevSecOps (id: 12) - completed M42
+        if (parseInt(id) === 42) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 12) ON CONFLICT DO NOTHING', [userId]);
+        }
+
+        // DevOps Master (id: 13) - all missions
+        const totalMissions = await db.query('SELECT COUNT(id) as count FROM missions');
+        if (totalCompleted >= parseInt(totalMissions.rows[0].count)) {
+            await db.query('INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 13) ON CONFLICT DO NOTHING', [userId]);
+        }
     }
 
     res.json({
@@ -297,7 +312,7 @@ const replayMission = async (req, res, next) => {
     const mission = missionCheck.rows[0];
 
     // Cleanup existing challenge if it's a k8s/linux/cicd challenge
-    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD') {
+    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35) {
        const challengeId = `u${userId}-m${id}`;
        await k8sService.cleanupChallenge(challengeId).catch(e => console.error(e));
        await db.query('DELETE FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
