@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     total_xp INTEGER DEFAULT 0,
+    best_streak INTEGER DEFAULT 0,
+    current_streak INTEGER DEFAULT 0,
+    last_active_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -29,6 +32,8 @@ CREATE TABLE IF NOT EXISTS missions (
     objective TEXT,
     difficulty VARCHAR(50),
     solution TEXT,
+    hints JSONB,
+    prerequisites JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -39,6 +44,9 @@ CREATE TABLE IF NOT EXISTS attempts (
     status VARCHAR(50) NOT NULL, -- 'started', 'failed', 'completed'
     score INTEGER DEFAULT 0,
     duration INTEGER, -- in seconds
+    hints_used INTEGER DEFAULT 0,
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
