@@ -31,7 +31,7 @@ spec:
       serviceAccountName: backend-sa
       containers:
         - name: backend
-          image: devops-arena-backend:v8
+          image: jodyys/devops-arena:backend-INITIAL_DEPLOYMENT
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
