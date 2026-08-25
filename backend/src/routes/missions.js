@@ -12,4 +12,9 @@ router.post('/:id/submit', authMiddleware, missionController.submitMission);
 router.post('/:id/replay', authMiddleware, missionController.replayMission);
 router.get('/:id/history', authMiddleware, missionController.getMissionHistory);
 
+// Sandbox specific routes
+router.get('/:id/status', authMiddleware, missionController.getSandboxStatus);
+router.post('/:id/terminal', authMiddleware, missionController.runTerminalCommand);
+router.post('/:id/abort', authMiddleware, missionController.abortMission);
+
 module.exports = router;

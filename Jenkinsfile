@@ -87,11 +87,11 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 // Update images to the new DEPLOY_TAG dynamically inside the manifest
-                sh "sed -i 's/frontend-INITIAL_DEPLOYMENT/frontend-${DEPLOY_TAG}/g' k8s/application/frontend-deployment.yaml"
-                sh "sed -i 's/backend-INITIAL_DEPLOYMENT/backend-${DEPLOY_TAG}/g' k8s/application/backend-deployment.yaml"
+                sh "sed -i 's/frontend-INITIAL_DEPLOYMENT/frontend-${DEPLOY_TAG}/g' k8s/platform/frontend.yaml"
+                sh "sed -i 's/backend-INITIAL_DEPLOYMENT/backend-${DEPLOY_TAG}/g' k8s/platform/backend.yaml"
 
                 // Apply application manifests (excluding cluster-scoped namespace)
-                sh "kubectl apply -f k8s/application/"
+                sh "kubectl apply -f k8s/platform/"
             }
         }
 

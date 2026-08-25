@@ -52,7 +52,7 @@ const startMission = async (req, res, next) => {
     const mission = missionCheck.rows[0];
 
     // Check if it's a Kubernetes, Linux, or CI/CD mission (which all use k8s pods)
-    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35) {
+    if (mission.category === 'Kubernetes' || mission.category === 'Docker' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35 || parseInt(id) === 3) {
       // Check if already active
       const activeCheck = await db.query('SELECT namespace FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
       if (activeCheck.rows.length > 0) {
@@ -67,8 +67,8 @@ const startMission = async (req, res, next) => {
       // Track in DB
       if (challengeId) {
         await db.query(
-          'INSERT INTO active_challenges (user_id, mission_id, namespace) VALUES ($1, $2, $3)',
-          [userId, id, challengeId]
+          'INSERT INTO active_challenges (user_id, mission_id, namespace, status) VALUES ($1, $2, $3, $4)',
+          [userId, id, challengeId, 'ACTIVE']
         );
       }
     }
@@ -104,7 +104,7 @@ const submitMission = async (req, res, next) => {
 
     // Get mission to check solution and fetch xp_reward from levels
     const missionResult = await db.query(`
-      SELECT m.solution, m.level_id, m.xp_reward, l.category 
+      SELECT m.solution, m.level_id, l.xp_reward, l.category 
       FROM missions m
       JOIN levels l ON m.level_id = l.id
       WHERE m.id = $1
@@ -119,10 +119,24 @@ const submitMission = async (req, res, next) => {
     const mission = missionResult.rows[0];
     let isCorrect = false;
 
+    let checks = [];
     // Delegate to K8s Challenge Validator for Kubernetes, Linux, and CI/CD missions
-    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35) {
-      const challengeId = `u${userId}-m${id}`;
-      isCorrect = await k8sService.validateChallenge(parseInt(id), challengeId);
+    if (mission.category === 'Kubernetes' || mission.category === 'Docker' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35 || parseInt(id) === 3) {
+      const activeCheck = await db.query('SELECT namespace FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+      if (activeCheck.rows.length === 0) {
+         const error = new Error('Sandbox not active or already cleaned up');
+         error.statusCode = 400;
+         return next(error);
+      }
+      const challengeId = activeCheck.rows[0].namespace;
+      const validationResult = await k8sService.validateChallenge(parseInt(id), challengeId);
+      
+      if (typeof validationResult === 'object' && validationResult !== null) {
+        isCorrect = validationResult.success;
+        checks = validationResult.checks || [];
+      } else {
+        isCorrect = validationResult;
+      }
       
       // Cleanup ONLY if correct as per requirements
       if (isCorrect) {
@@ -279,7 +293,8 @@ const submitMission = async (req, res, next) => {
         is_first_completion: isFirstCompletion,
         duration: durationSeconds,
         personal_best: personalBest,
-        is_new_personal_best: isNewPersonalBest
+        is_new_personal_best: isNewPersonalBest,
+        checks
       },
     });
   } catch (error) {
@@ -312,16 +327,19 @@ const replayMission = async (req, res, next) => {
     const mission = missionCheck.rows[0];
 
     // Cleanup existing challenge if it's a k8s/linux/cicd challenge
-    if (mission.category === 'Kubernetes' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35) {
-       const challengeId = `u${userId}-m${id}`;
-       await k8sService.cleanupChallenge(challengeId).catch(e => console.error(e));
-       await db.query('DELETE FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+    if (mission.category === 'Kubernetes' || mission.category === 'Docker' || mission.category === 'Linux' || mission.category === 'CI/CD' || parseInt(id) === 31 || parseInt(id) === 35 || parseInt(id) === 3) {
+       const activeCheck = await db.query('SELECT namespace FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+       if (activeCheck.rows.length > 0) {
+         const oldChallengeId = activeCheck.rows[0].namespace;
+         await k8sService.cleanupChallenge(oldChallengeId).catch(e => console.error(e));
+         await db.query('DELETE FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+       }
 
        // Create new challenge
-       await k8sService.startChallenge(parseInt(id), userId);
+       const challengeId = await k8sService.startChallenge(parseInt(id), userId);
        await db.query(
-         'INSERT INTO active_challenges (user_id, mission_id, namespace) VALUES ($1, $2, $3)',
-         [userId, id, challengeId]
+         'INSERT INTO active_challenges (user_id, mission_id, namespace, status) VALUES ($1, $2, $3, $4)',
+         [userId, id, challengeId, 'ACTIVE']
        );
     }
 
@@ -366,10 +384,117 @@ const getMissionHistory = async (req, res, next) => {
   }
 };
 
+const getSandboxStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const activeCheck = await db.query(
+      'SELECT namespace, status FROM active_challenges WHERE user_id = $1 AND mission_id = $2', 
+      [userId, id]
+    );
+    if (activeCheck.rows.length === 0) {
+      return res.json({ success: true, data: { status: 'DESTROYED', sandbox_id: null } });
+    }
+
+    const namespaceName = activeCheck.rows[0].namespace;
+
+    // Check real-time pod status from Kubernetes
+    try {
+      const { kc } = require('../services/kubernetesService');
+      const k8s = require('@kubernetes/client-node');
+      const k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+      const podRes = await k8sApi.readNamespacedPod('terminal', namespaceName);
+      const phase = podRes.body.status.phase;
+      const containerReady = podRes.body.status.containerStatuses?.[0]?.ready || false;
+
+      if (phase === 'Running' && containerReady) {
+        // Update DB status if it was stale
+        if (activeCheck.rows[0].status !== 'ACTIVE') {
+          await db.query('UPDATE active_challenges SET status = $1 WHERE user_id = $2 AND mission_id = $3', ['ACTIVE', userId, id]);
+        }
+        return res.json({ success: true, data: { status: 'ACTIVE', sandbox_id: namespaceName } });
+      } else if (phase === 'Pending' || phase === 'Running') {
+        return res.json({ success: true, data: { status: 'PROVISIONING', sandbox_id: namespaceName } });
+      } else {
+        return res.json({ success: true, data: { status: 'FAILED', sandbox_id: namespaceName } });
+      }
+    } catch (k8sErr) {
+      // Pod not found or namespace gone
+      return res.json({ success: true, data: { status: 'PROVISIONING', sandbox_id: namespaceName } });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+const runTerminalCommand = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { command } = req.body;
+    
+    if (!command) {
+       return res.status(400).json({ success: false, stdout: '', stderr: 'Command is required', exitCode: 1 });
+    }
+
+    const activeCheck = await db.query('SELECT namespace, status FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+    if (activeCheck.rows.length === 0) {
+      return res.status(400).json({ success: false, stdout: '', stderr: 'Sandbox is not active or has been destroyed.', exitCode: 1 });
+    }
+    
+    const challengeId = activeCheck.rows[0].namespace;
+    const result = await k8sService.executeTerminalCommand(challengeId, command);
+    res.json({ success: true, data: { success: result.success !== false, ...result } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const abortMission = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    const activeCheck = await db.query('SELECT namespace FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]);
+    if (activeCheck.rows.length > 0) {
+      const challengeId = activeCheck.rows[0].namespace;
+      await db.query('UPDATE active_challenges SET status = $1 WHERE user_id = $2 AND mission_id = $3', ['CLEANING_UP', userId, id]);
+      
+      // Cleanup in background
+      k8sService.cleanupChallenge(challengeId)
+        .then(() => db.query('DELETE FROM active_challenges WHERE user_id = $1 AND mission_id = $2', [userId, id]))
+        .catch(e => console.error(e));
+    }
+    
+    res.json({ success: true, message: 'Mission aborted and sandbox cleaned up' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Background sandbox cleaner
+setInterval(async () => {
+  try {
+    // 30 minutes timeout
+    const result = await db.query("SELECT * FROM active_challenges WHERE started_at < NOW() - INTERVAL '30 minutes'");
+    for (const challenge of result.rows) {
+      console.log(`Sandbox ${challenge.namespace} expired. Cleaning up...`);
+      await k8sService.cleanupChallenge(challenge.namespace).catch(e => console.error(e));
+      await db.query('DELETE FROM active_challenges WHERE id = $1', [challenge.id]);
+    }
+  } catch(e) {
+    console.error("Background cleaner error:", e);
+  }
+}, 60 * 1000); // Check every minute
+
 module.exports = {
   getMissionById,
   startMission,
   submitMission,
   replayMission,
-  getMissionHistory
+  getMissionHistory,
+  getSandboxStatus,
+  runTerminalCommand,
+  abortMission
 };

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Hoodie body -->
+  <path d="M 20 100 L 20 65 Q 20 55 30 52 L 38 50 Q 42 48 43 44" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 80 100 L 80 65 Q 80 55 70 52 L 62 50 Q 58 48 57 44" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Hood outer shape -->
+  <path d="M 43 44 Q 40 30 40 22 Q 40 8 50 8 Q 60 8 60 22 Q 60 30 57 44" stroke="#ef4444" stroke-width="2.5" fill="rgba(239,68,68,0.08)" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Hood inner shadow / face area -->
+  <ellipse cx="50" cy="32" rx="11" ry="14" fill="rgba(10,10,10,0.9)" stroke="#ef4444" stroke-width="1"/>
+  <!-- Glowing eyes -->
+  <ellipse cx="45" cy="30" rx="2.5" ry="2" fill="#ef4444" opacity="0.9"/>
+  <ellipse cx="55" cy="30" rx="2.5" ry="2" fill="#ef4444" opacity="0.9"/>
+  <!-- Eye glow -->
+  <ellipse cx="45" cy="30" rx="4" ry="3" fill="#ef4444" opacity="0.2"/>
+  <ellipse cx="55" cy="30" rx="4" ry="3" fill="#ef4444" opacity="0.2"/>
+  <!-- Body / torso -->
+  <path d="M 38 50 Q 35 60 32 70 L 28 100" stroke="#ef4444" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 62 50 Q 65 60 68 70 L 72 100" stroke="#ef4444" stroke-width="2" fill="none" opacity="0.5"/>
+  <!-- Center zipper line -->
+  <line x1="50" y1="50" x2="50" y2="80" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+  <!-- Shoulder lines -->
+  <path d="M 38 50 L 20 65" stroke="#ef4444" stroke-width="2" opacity="0.6"/>
+  <path d="M 62 50 L 80 65" stroke="#ef4444" stroke-width="2" opacity="0.6"/>
+</svg>

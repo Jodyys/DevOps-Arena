@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: ns-challenges
+  labels:
+    app: config-mount
+    challenge-id: ${CHALLENGE_ID}
+data:
+  APP_ENV: staging
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

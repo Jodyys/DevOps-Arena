@@ -1,29 +1,15 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { LogOut, User, Bell, CheckCircle2, Trophy, Clock } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { LogOut, Bell, CheckCircle2, Trophy, Clock, ChevronRight } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { fetchApi } from '@/lib/api';
 
-export default function Topbar() {
+export default function Topbar({ profile }: { profile: any }) {
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
+  const pathname = usePathname();
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await fetchApi('/auth/me');
-        if (data.success) {
-          setProfile(data.data);
-        }
-      } catch (e) {
-        console.error("Failed to fetch profile", e);
-      }
-    };
-    fetchProfile();
-  }, []);
 
   // Close dropdown on click outside or escape
   useEffect(() => {
@@ -52,7 +38,12 @@ export default function Topbar() {
     router.push('/login');
   };
 
-  // Generate notifications from achievements and profile state
+  const getBreadcrumb = () => {
+    const path = pathname.split('/').filter(p => p);
+    if (path.length === 0) return 'Dashboard';
+    return path.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' / ');
+  };
+
   const getNotifications = () => {
     const notifs = [];
     if (profile?.achievements) {
@@ -63,18 +54,17 @@ export default function Topbar() {
         id: `ach-${a.id}`,
         title: 'Achievement Unlocked!',
         message: a.name,
-        icon: <Trophy className="w-5 h-5 text-yellow-400" />,
+        icon: <Trophy className="w-5 h-5 text-yellow-500" />,
         time: new Date(a.unlocked_at)
       })));
     }
     
-    // Add a welcome/status notification
     if (profile && notifs.length === 0) {
       notifs.push({
         id: 'welcome',
         title: 'System Online',
         message: 'Welcome to DevOps Arena. Ready for training.',
-        icon: <CheckCircle2 className="w-5 h-5 text-green-400" />,
+        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
         time: new Date()
       });
     }
@@ -85,47 +75,56 @@ export default function Topbar() {
   const notifications = getNotifications();
 
   return (
-    <header className="h-16 border-b border-slate-800 bg-slate-900 flex items-center justify-between px-6 sticky top-0 z-50 shadow-sm">
-      <div className="flex items-center text-slate-300">
-        {profile && (
-          <div className="hidden md:flex flex-col">
-            <span className="text-sm font-bold text-slate-100">{profile.username}</span>
-            <span className="text-xs text-blue-400 font-medium">Level {profile.level} • {profile.title}</span>
-          </div>
-        )}
+    <header className="h-16 border-b border-white/5 bg-[#050505]/90 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-50">
+      <div className="flex items-center text-slate-400 text-sm font-mono uppercase tracking-wider">
+        <span className="text-slate-500">Arena</span>
+        <ChevronRight className="w-4 h-4 mx-2 text-slate-600" />
+        <span className="text-red-500 font-bold">{getBreadcrumb()}</span>
       </div>
 
-      <div className="flex items-center space-x-4 relative">
+      <div className="flex items-center h-full">
         {profile && (
-          <div className="flex items-center bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
-            <span className="text-xs font-bold text-yellow-400 mr-2">XP</span>
-            <span className="text-sm font-mono font-medium text-slate-200">
-              {profile.total_xp.toLocaleString()} <span className="text-slate-500">/ {profile.nextLevelXp.toLocaleString()}</span>
-            </span>
+          <div className="hidden md:flex items-center h-full px-6 border-l border-white/5">
+            <div className="text-right mr-4">
+              <div className="text-xs font-bold text-slate-100 uppercase tracking-widest">Level {profile.level}</div>
+              <div className="text-[10px] text-red-500 font-mono uppercase">{profile.title}</div>
+            </div>
+            <div className="w-32">
+              <div className="flex justify-between text-[10px] text-slate-500 font-mono mb-1">
+                <span>XP Progress</span>
+                <span>{profile.total_xp || 0} / {profile.nextLevelXp || 200}</span>
+              </div>
+              <div className="w-full bg-[#111111] h-1.5 rounded-full overflow-hidden border border-white/5">
+                <div 
+                  className="bg-red-500 h-full shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                  style={{ width: `${Math.min(100, ((profile.total_xp || 0) / (profile.nextLevelXp || 200)) * 100)}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
         )}
         
-        <div className="relative" ref={dropdownRef}>
+        <div className="flex items-center h-full px-4 border-l border-white/5 relative" ref={dropdownRef}>
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`text-slate-400 hover:text-slate-200 transition-colors relative p-2 rounded-full ${showNotifications ? 'bg-slate-800 text-white' : ''}`}
+            className={`text-slate-500 hover:text-slate-300 transition-colors relative ${showNotifications ? 'text-white' : ''}`}
           >
             <Bell className="w-5 h-5" />
             {notifications.length > 0 && (
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-slate-900"></span>
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#050505]"></span>
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="p-3 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
-                <span className="font-bold text-slate-200 text-sm">NOTIFICATIONS</span>
+            <div className="absolute right-0 top-16 mt-2 w-80 bg-[#0a0a0a] border border-white/5 rounded-lg shadow-2xl overflow-hidden z-50">
+              <div className="p-3 border-b border-white/5 flex justify-between items-center bg-[#111111]">
+                <span className="font-bold text-slate-200 text-xs tracking-widest uppercase">Notifications</span>
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-96 overflow-y-auto custom-scrollbar">
                 {notifications.length > 0 ? (
                   notifications.map(n => (
-                    <div key={n.id} className="p-4 border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors flex items-start gap-3">
-                      <div className="bg-slate-900 p-2 rounded-full shrink-0">
+                    <div key={n.id} className="p-4 border-b border-white/5 hover:bg-[#111111] transition-colors flex items-start gap-3">
+                      <div className="bg-[#1a1a1a] p-2 rounded-full shrink-0 border border-white/5">
                         {n.icon}
                       </div>
                       <div>
@@ -148,15 +147,33 @@ export default function Topbar() {
           )}
         </div>
 
-        <div className="h-8 w-px bg-slate-800 mx-2"></div>
-
-        <button 
-          onClick={handleLogout}
-          className="flex items-center text-slate-400 hover:text-red-400 transition-colors text-sm font-medium"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Logout
-        </button>
+        <div className="flex items-center h-full px-6 border-l border-white/5 gap-4">
+          <div className="hidden sm:flex items-center gap-2">
+            <div className="w-8 h-8 border border-red-500/40 rounded bg-black shadow-[0_0_10px_rgba(239,68,68,0.3)] relative overflow-hidden">
+               <img 
+                 src="/hacker-avatar.jpg" 
+                 className="w-full h-full object-cover object-top" 
+                 alt="Avatar" 
+                 style={{ 
+                   filter: `hue-rotate(${
+                     String(profile?.username || 'admin').split('').reduce((hash, char) => {
+                       return char.charCodeAt(0) + ((hash << 5) - hash);
+                     }, 0) % 360
+                   }deg)` 
+                 }}
+               />
+               <div className="absolute inset-0 ring-1 ring-inset ring-red-500/30 rounded pointer-events-none"></div>
+            </div>
+            <span className="text-sm font-bold text-slate-300">{profile?.username || 'admin'}</span>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center text-slate-500 hover:text-red-500 transition-colors text-xs font-bold uppercase tracking-wider"
+          >
+            <LogOut className="w-4 h-4 mr-1" />
+            Logout
+          </button>
+        </div>
       </div>
     </header>
   );

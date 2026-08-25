@@ -56,24 +56,35 @@ app.get('/health', async (req, res) => {
 const authRoutes = require('./routes/auth');
 const levelsRoutes = require('./routes/levels');
 const missionsRoutes = require('./routes/missions');
+const usersRoutes = require('./routes/users');
 const errorHandler = require('./middleware/errorHandler');
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/levels', levelsRoutes);
 app.use('/api/missions', missionsRoutes);
+app.use('/api/users', usersRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
 
-const PORT = process.env.BACKEND_PORT || 4000;
+const PORT = 4000;
 
 const startServer = async () => {
   try {
+    console.log("PORT IS:", PORT);
+    console.log("process.env.PORT:", process.env.PORT);
+    console.log("process.env.BACKEND_PORT:", process.env.BACKEND_PORT);
     await connectRedis();
-    app.listen(PORT, () => {
-      logger.info(`Backend server running on port ${PORT}`);
+    const { setupWebSocket } = require('./websocket');
+
+    const port = process.env.PORT || 4000;
+    const server = app.listen(port, '0.0.0.0', () => {
+      logger.info(`Backend server running on port ${port} (K8s mode)`);
     });
+
+    // Attach WebSocket server
+    setupWebSocket(server, logger);
   } catch (error) {
     logger.error({ error }, 'Failed to start server');
     process.exit(1);

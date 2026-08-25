@@ -23,8 +23,6 @@ spec:
         image: nginx:broken-tag
         securityContext:
           allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
         resources:
           limits:
             cpu: "100m"

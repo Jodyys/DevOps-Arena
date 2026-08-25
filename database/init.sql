@@ -94,7 +94,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO missions (id, level_id, title, description, objective, difficulty, solution) VALUES
 (1, 1, 'Fix the Dockerfile', 'The backend Dockerfile is failing to build because it is missing a command to install dependencies.', 'Identify and fix the missing command in the Dockerfile.', 'Easy', 'RUN npm install'),
 (2, 1, 'Reduce Docker Image Size', 'The current frontend image is 1.2GB. That is way too big!', 'Change the base image to a smaller Alpine version.', 'Easy', 'FROM node:18-alpine'),
-(3, 2, 'Fix Database Connection', 'The backend cannot connect to the database in docker-compose.yml.', 'Update the DB_HOST environment variable to point to the correct service name.', 'Easy', 'DB_HOST=postgres'),
+(3, 3, 'Fix Database Connection', 'The backend cannot connect to the database in Kubernetes.', 'Update the DB_HOST environment variable to point to the correct service name.', 'Easy', 'DB_HOST=postgres'),
 (4, 3, 'Fix ImagePullBackOff', 'The backend pod is stuck in ImagePullBackOff state.', 'Identify and fix the incorrect Docker image name in the deployment manifest.', 'Medium', 'jodyys/devops-arena-backend:v1'),
 (5, 4, 'Fix CrashLoopBackOff', 'The backend Pod keeps crashing. Logs indicate a missing environment variable.', 'Identify which environment variable is missing causing the crash.', 'Hard', 'DATABASE_URL'),
 (6, 4, 'Service Selector Mismatch', 'The application is unavailable. The Pod is running but the Service is not routing traffic to it.', 'Fix the label selector in the Service definition to match the Pods.', 'Medium', 'app: backend'),

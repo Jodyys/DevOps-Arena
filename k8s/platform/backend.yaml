@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secret
+  namespace: ns-devops-arena
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://devops_arena:devops_arena@postgres.ns-devops-arena.svc.cluster.local:5432/devops_arena"
+  REDIS_URL: "redis://redis.ns-devops-arena.svc.cluster.local:6379"
+  JWT_SECRET: "super-secret-key-change-me"
+  JWT_EXPIRES_IN: "1d"
+  FRONTEND_URL: "http://devops-arena.local"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: ns-devops-arena
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      serviceAccountName: backend-sa
+      containers:
+        - name: backend
+          image: devops-arena-backend:v8
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: backend-secret
+          ports:
+            - containerPort: 4000
+          volumeMounts:
+            - name: challenges-volume
+              mountPath: /k8s/challenges
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: challenges-volume
+          configMap:
+            name: backend-challenges-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: ns-devops-arena
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000

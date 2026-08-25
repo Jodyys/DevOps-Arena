@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_USER
+              value: "devops_arena"
+            - name: POSTGRES_PASSWORD
+              value: "change-me"
+            - name: POSTGRES_DB
+              value: "devops_arena"
+          ports:
+            - containerPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: postgres:15-alpine
+          env:
+            - name: DB_HOST
+              value: "wrong-db-service"
+            - name: DB_USER
+              value: "devops_arena"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                if pg_isready -h $DB_HOST -U $DB_USER -t 3; then
+                  echo "Connected successfully to $DB_HOST!"
+                  sleep 3600
+                else
+                  echo "Failed to connect to $DB_HOST"
+                  sleep 5
+                  exit 1
+                fi
+              done

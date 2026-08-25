@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m1-dockerfile
+  labels:
+    app: m1-dockerfile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m1-dockerfile
+  template:
+    metadata:
+      labels:
+        app: m1-dockerfile
+    spec:
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          mkdir -p /workspace
+          cat << 'EOF' > /workspace/Dockerfile
+          FROM node:18-alpine
+          WORKDIR /app
+          COPY package.json .
+          COPY . .
+          CMD ["npm", "start"]
+          EOF
+          apk add --no-cache nano
+          while true; do sleep 3600; done
+

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { fetchApi } from "@/lib/api";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, CircleDashed, TerminalSquare, AlertTriangle, ShieldAlert, Cpu } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleDashed, TerminalSquare, AlertTriangle, ShieldAlert, Cpu, Lock } from "lucide-react";
 
 export default function LevelDetail() {
   const { id } = useParams();
@@ -52,11 +52,29 @@ export default function LevelDetail() {
     }
   };
 
+  const getCategoryWatermark = (category: string) => {
+    const baseClass = "w-64 h-64 text-slate-100 opacity-50 filter grayscale";
+    switch (category?.toLowerCase()) {
+      case 'docker': 
+        return <img src="/docker-logo.svg" className={`${baseClass} invert`} alt="" />;
+      case 'kubernetes': 
+        return <img src="/k8s-logo.svg" className={baseClass} alt="" />;
+      case 'linux': 
+        return <img src="/linux-logo.svg" className={baseClass} alt="" />;
+      case 'ci/cd': 
+        return <img src="/jenkins-logo.svg" className={baseClass} alt="" />;
+      case 'security': 
+        return <img src="/bash-logo.svg" className={baseClass} alt="" />;
+      default: 
+        return <Cpu className="w-64 h-64 text-slate-100" />;
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-slate-800/50 rounded-xl p-8 border border-slate-700/50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <Cpu className="w-64 h-64 text-slate-100" />
+      <div className="bg-[#0B1121]/95 backdrop-blur-xl rounded-[15px] p-8 sm:p-10 border border-slate-800/50 relative overflow-hidden shadow-lg">
+        <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+          {getCategoryWatermark(level.category)}
         </div>
         <div className="relative z-10">
           <Link href="/levels" className="flex items-center text-slate-400 hover:text-blue-400 transition-colors mb-4 text-sm font-medium w-fit">
@@ -92,54 +110,58 @@ export default function LevelDetail() {
                 
                 <div className="p-6 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <span className="text-slate-500 font-mono text-sm font-bold">M-{String(mission.id).padStart(2, '0')}</span>
-                      <h3 className="text-xl font-bold text-slate-100">{mission.title}</h3>
-                    </div>
-                    <p className="text-slate-400 text-sm">{mission.description}</p>
+                    <div className="text-slate-500 font-mono text-sm font-bold tracking-wider mb-1">M-{String(mission.id).padStart(2, '0')}</div>
+                    <h3 className="text-xl font-bold text-slate-100 mb-2">{mission.title}</h3>
+                    <p className="text-slate-400 text-sm mb-4">{mission.description}</p>
                     
-                    <div className="flex items-center space-x-4 mt-4 text-xs font-semibold">
-                      <span className={`px-2 py-1 rounded border ${diffClass} flex items-center`}>
-                        {mission.difficulty.toUpperCase()} 
-                        <span className="ml-2 tracking-widest">{getDifficultyIcon(mission.difficulty)}</span>
+                    <div className="flex items-center space-x-4 text-xs font-bold uppercase tracking-wider font-mono">
+                      <span className={diffClass.split(' ')[0]}>
+                        {mission.difficulty}
                       </span>
+                      {mission.xp_reward && (
+                         <span className="text-yellow-500">{mission.xp_reward} XP</span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-6 shrink-0 bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
-                    <div className="text-right hidden sm:block">
-                      <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Status</div>
+                  <div className="flex flex-col items-start md:items-end space-y-4 shrink-0 bg-slate-800/30 p-6 rounded-lg border border-slate-700/30 min-w-[200px]">
                       {status === 'completed' ? (
-                        <div className="flex items-center text-emerald-400 font-bold">
-                          <CheckCircle2 className="w-4 h-4 mr-1" /> COMPLETED
-                        </div>
+                        <>
+                           <div className="flex flex-col items-start md:items-end w-full mb-2">
+                             <div className="flex items-center text-emerald-400 font-bold mb-1 tracking-wider text-sm">
+                               <CheckCircle2 className="w-4 h-4 mr-2" /> RESOLVED
+                             </div>
+                             {mission.best_time && <div className="text-xs text-slate-400 font-mono">BEST TIME {mission.best_time}</div>}
+                             {mission.xp_reward && <div className="text-xs text-yellow-500 font-mono">+{mission.xp_reward} XP</div>}
+                           </div>
+                           <Link href={`/missions/${mission.id}`} className="w-full text-center px-6 py-2.5 rounded font-bold text-xs uppercase tracking-wider bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors border border-slate-600">
+                              Replay Mission
+                           </Link>
+                        </>
                       ) : status === 'locked' ? (
-                        <div className="flex items-center text-slate-500 font-medium text-xs">
-                           <AlertTriangle className="w-3 h-3 mr-1" /> {mission.lockedReason}
-                        </div>
+                        <>
+                           <div className="flex flex-col items-start md:items-end w-full mb-2">
+                             <div className="flex items-center text-slate-500 font-bold mb-1 tracking-wider text-sm">
+                               <Lock className="w-4 h-4 mr-2" /> LOCKED
+                             </div>
+                             <div className="text-xs text-slate-600 font-mono md:text-right max-w-[150px]">{mission.lockedReason || 'Prerequisites not met'}</div>
+                           </div>
+                           <button disabled className="w-full px-6 py-2.5 rounded font-bold text-xs uppercase tracking-wider bg-surface-secondary text-slate-600 cursor-not-allowed border border-surface-secondary">
+                              LOCKED
+                           </button>
+                        </>
                       ) : (
-                        <div className="flex items-center text-slate-400 font-medium">
-                          <CircleDashed className="w-4 h-4 mr-1" /> PENDING
-                        </div>
+                        <>
+                           <div className="flex flex-col items-start md:items-end w-full mb-2">
+                             <div className="flex items-center text-blue-400 font-bold mb-1 tracking-wider text-sm">
+                               <div className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></div> AVAILABLE
+                             </div>
+                           </div>
+                           <Link href={`/missions/${mission.id}`} className="w-full text-center px-6 py-2.5 rounded font-bold text-xs uppercase tracking-wider bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                              Initiate Mission →
+                           </Link>
+                        </>
                       )}
-                    </div>
-                    
-                    {status === 'locked' ? (
-                       <button disabled className="px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all duration-200 bg-slate-800 text-slate-600 cursor-not-allowed">
-                          LOCKED
-                       </button>
-                    ) : (
-                      <Link 
-                        href={`/missions/${mission.id}`}
-                        className={`px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all duration-200 ${
-                          status === 'completed' 
-                            ? 'bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600' 
-                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                        }`}
-                      >
-                        {status === 'completed' ? 'Replay' : 'Start'}
-                      </Link>
-                    )}
                   </div>
                 </div>
               </div>

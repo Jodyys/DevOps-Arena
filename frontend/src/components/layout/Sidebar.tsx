@@ -3,57 +3,138 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Map, Trophy, Settings, TerminalSquare } from 'lucide-react';
+import { LayoutDashboard, Map, Trophy, Server, Users, Medal } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ profile }: { profile: any }) {
   const pathname = usePathname();
 
-  const links = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  const linksLearning = [
     { href: '/levels', label: 'Skill Map', icon: Map },
     { href: '/achievements', label: 'Achievements', icon: Trophy },
   ];
 
+  const linksCommunity = [
+    { href: '/leaderboard', label: 'Leaderboard', icon: Medal },
+    { href: '/users', label: 'User Management', icon: Users },
+  ];
+
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 hidden md:flex flex-col">
-      <div className="h-16 flex items-center px-6 border-b border-slate-800">
-        <TerminalSquare className="w-6 h-6 text-blue-500 mr-3" />
-        <span className="text-xl font-bold tracking-wider text-slate-100">
-          DEVOPS<span className="text-blue-500">ARENA</span>
-        </span>
+    <aside className="w-64 flex-shrink-0 border-r border-white/5 bg-[#050505]/95 backdrop-blur-md hidden md:flex flex-col z-40">
+      <div className="h-16 flex items-center px-6 border-b border-white/5">
+        <div className="flex items-center space-x-2">
+          <div className="border border-red-500 px-1.5 py-0.5 bg-red-500/10 text-red-500 font-mono font-bold text-xs">{`>_`}</div>
+          <span className="text-base font-bold tracking-widest text-white">
+            DEVOPS <span className="text-red-500">ARENA</span>
+          </span>
+        </div>
       </div>
       
-      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">
-          Game Modes
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-6">
+        
+        <div>
+          <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">
+            Command Center
+          </div>
+          <Link
+            href="/dashboard"
+            className={`flex items-center px-4 py-2.5 rounded-md transition-all duration-200 group ${
+              pathname === '/dashboard' 
+                ? 'bg-red-500/10 text-red-500 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.1)]' 
+                : 'text-slate-400 hover:bg-[#111111] hover:text-slate-200 border border-transparent'
+            }`}
+          >
+            <LayoutDashboard className={`w-4 h-4 mr-3 ${pathname === '/dashboard' ? 'text-red-500' : 'text-slate-500 group-hover:text-slate-400'}`} />
+            <span className="font-mono text-sm tracking-wide">Dashboard</span>
+          </Link>
         </div>
-        {links.map((link) => {
-          const isActive = pathname.startsWith(link.href);
-          const Icon = link.icon;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 group ${
-                isActive 
-                  ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-              }`}
-            >
-              <Icon className={`w-5 h-5 mr-3 transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-              <span className="font-medium">{link.label}</span>
-            </Link>
-          );
-        })}
+
+        <div>
+          <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">
+            Learning
+          </div>
+          <div className="space-y-1">
+            {linksLearning.map((link) => {
+              const isActive = pathname.startsWith(link.href);
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center px-4 py-2.5 rounded-md transition-all duration-200 group ${
+                    isActive 
+                      ? 'bg-red-500/10 text-red-500 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.1)]' 
+                      : 'text-slate-400 hover:bg-[#111111] hover:text-slate-200 border border-transparent'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 mr-3 ${isActive ? 'text-red-500' : 'text-slate-500 group-hover:text-slate-400'}`} />
+                  <span className="font-mono text-sm tracking-wide">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">
+            Community
+          </div>
+          <div className="space-y-1">
+            {linksCommunity.map((link) => {
+              const isActive = pathname.startsWith(link.href);
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center px-4 py-2.5 rounded-md transition-all duration-200 group ${
+                    isActive 
+                      ? 'bg-red-500/10 text-red-500 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.1)]' 
+                      : 'text-slate-400 hover:bg-[#111111] hover:text-slate-200 border border-transparent'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 mr-3 ${isActive ? 'text-red-500' : 'text-slate-500 group-hover:text-slate-400'}`} />
+                  <span className="font-mono text-sm tracking-wide">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">
+            System
+          </div>
+          <div className="flex items-center px-4 py-2.5 rounded-md text-slate-400 bg-[#0a0a0a] border border-white/5">
+            <Server className="w-4 h-4 mr-3 text-slate-500" />
+            <span className="font-mono text-sm tracking-wide flex-1">Server Status</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+          </div>
+        </div>
+
       </nav>
 
-      <div className="p-4 border-t border-slate-800">
-        <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-          <div className="text-sm font-medium text-slate-300 mb-1">Server Status</div>
-          <div className="flex items-center text-xs text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-            All systems operational
-          </div>
+      <div className="p-4 border-t border-white/5 bg-[#0a0a0a]/50">
+        <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">
+          Player Summary
+        </div>
+        <div className="px-2">
+          {profile ? (
+            <>
+              <div className="font-bold text-slate-200 text-sm">Level {profile.level || 1}</div>
+              <div className="text-red-500 text-xs font-mono mb-3">{profile.title || 'DevOps Rookie'}</div>
+              <div className="w-full bg-[#111111] h-1.5 rounded-full overflow-hidden mb-1 border border-white/5">
+                <div 
+                  className="bg-red-500 h-full rounded-full shadow-[0_0_10px_rgba(239,68,68,0.8)]" 
+                  style={{ width: `${Math.min(100, ((profile.total_xp || 0) / (profile.nextLevelXp || 200)) * 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-[9px] text-slate-500 font-mono text-right">
+                {profile.total_xp || 0} / {profile.nextLevelXp || 200} XP
+              </div>
+            </>
+          ) : (
+            <div className="text-xs text-slate-500 animate-pulse">Loading profile...</div>
+          )}
         </div>
       </div>
     </aside>

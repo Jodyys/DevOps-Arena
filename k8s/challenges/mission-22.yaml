@@ -34,4 +34,5 @@ spec:
             }
             console.log("Test passed!");
             EOF
+            apk add --no-cache nano
             while true; do sleep 3600; done
