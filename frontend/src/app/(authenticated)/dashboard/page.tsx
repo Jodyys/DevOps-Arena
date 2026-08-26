@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Trophy, Activity, Flame, ClipboardList, AlertTriangle, 
   GitBranch, Server, Box, GitCommit, PlayCircle, 
-  CheckCircle2, ArrowRight, XCircle, Terminal, 
+  CheckCircle2, ArrowRight, XCircle, Terminal, Github, Shield,
   ShieldAlert, Activity as ActivityIcon, Cloud, Check, Cpu, HardDrive, Network, RotateCcw, Map
 } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +18,8 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeMission, setActiveMission] = useState<any>(null);
+  const [sandboxState, setSandboxState] = useState<any>({ status: 'STANDBY', sandbox_id: null });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -29,7 +31,37 @@ export default function Dashboard() {
         }
         const profileRes = await fetchApi('/auth/me');
         if (profileRes.success) {
-          setProfile(profileRes.data);
+          const prof = profileRes.data;
+          setProfile(prof);
+
+          const recentMission = prof.incidentFeed?.find((log: any) => log.type === 'mission');
+          let missionIdToCheck = null;
+          let missionTitle = "Unknown Mission";
+
+          if (recentMission) {
+             missionIdToCheck = recentMission.mission_id;
+             missionTitle = recentMission.title;
+          } else if (prof.continueMissionId) {
+             missionIdToCheck = prof.continueMissionId;
+             missionTitle = "Mission " + prof.continueMissionId;
+          }
+
+          if (missionIdToCheck) {
+             setActiveMission({ id: missionIdToCheck, title: missionTitle });
+             try {
+                const statusRes = await fetchApi(`/missions/${missionIdToCheck}/status`);
+                if (statusRes.success && statusRes.data.status !== 'DESTROYED') {
+                   setSandboxState(statusRes.data);
+                } else {
+                   setSandboxState({ status: 'STANDBY', sandbox_id: null });
+                }
+             } catch(e) {
+                setSandboxState({ status: 'STANDBY', sandbox_id: null });
+             }
+          } else {
+             setSandboxState({ status: 'STANDBY', sandbox_id: null });
+          }
+
         } else {
           router.push('/login');
         }
@@ -57,9 +89,6 @@ export default function Dashboard() {
   if (!profile) return null;
 
   const successRate = profile.completed_missions ? Math.round((profile.completed_missions / TOTAL_MISSIONS) * 100) : 0;
-  
-  // Fake pipeline state logic just for visual consistency, using existing profile data if possible
-  const hasActiveIncident = !!profile.continueMissionId;
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-8 animate-in fade-in duration-500">
@@ -115,11 +144,11 @@ export default function Dashboard() {
 
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
             <div className="flex items-center gap-2">
-              <Box className={`w-5 h-5 ${hasActiveIncident ? 'text-red-500' : 'text-slate-500'}`} />
+              <Box className={`w-5 h-5 ${sandboxState.status !== 'STANDBY' ? 'text-red-500' : 'text-slate-500'}`} />
               <div className="text-[9px] text-slate-500 font-mono">SANDBOX</div>
             </div>
-            <div className={`font-bold text-sm tracking-widest mt-1 ${hasActiveIncident ? 'text-red-500' : 'text-slate-500'}`}>
-              {hasActiveIncident ? '● ACTIVE' : '○ STANDBY'}
+            <div className={`font-bold text-sm tracking-widest mt-1 ${sandboxState.status !== 'STANDBY' ? 'text-red-500' : 'text-slate-500'}`}>
+              {sandboxState.status !== 'STANDBY' ? `● ${sandboxState.status}` : '○ STANDBY'}
             </div>
           </div>
         </div>
@@ -177,35 +206,37 @@ export default function Dashboard() {
               <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest font-mono">PRIORITY INCIDENT</span>
             </div>
             
-            {hasActiveIncident ? (
+            {activeMission ? (
               <div className="flex flex-col md:flex-row justify-between gap-6">
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-white mb-2 uppercase">MISSION M-{(profile.continueMissionId || 0).toString().padStart(2, '0')}</h3>
+                  <h3 className="text-2xl font-black text-white mb-2 uppercase">MISSION M-{activeMission.id.toString().padStart(2, '0')}</h3>
                   <p className="text-slate-400 text-sm mb-6 max-w-lg">
-                    KUBERNETES INCIDENT
+                    {activeMission.title}
                   </p>
                   <div className="flex flex-wrap gap-3 mb-6">
                     <div className="px-2 py-1 rounded bg-[#111111] border border-white/10 text-[10px] font-mono text-slate-400">
-                      Sandbox: <span className="text-white font-bold">ACTIVE</span>
+                      Sandbox: <span className="text-white font-bold">{sandboxState.sandbox_id || sandboxState.status || 'ACTIVE'}</span>
                     </div>
                   </div>
-                  <Link href={`/missions/${profile.continueMissionId}`} className="inline-flex items-center px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold tracking-widest uppercase rounded shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all">
+                  <Link href={`/missions/${activeMission.id}`} className="inline-flex items-center px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold tracking-widest uppercase rounded shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all">
                     INVESTIGATE INCIDENT <ArrowRight className="w-4 h-4 ml-2" />
                   </Link>
                 </div>
                 <div className="hidden md:flex flex-col gap-4 min-w-[200px]">
                   <div>
                     <div className="text-[9px] text-slate-500 font-mono mb-1">STATUS</div>
-                    <div className="text-red-500 font-bold text-sm tracking-widest">INVESTIGATION REQUIRED</div>
+                    <div className={`font-bold text-sm tracking-widest ${sandboxState.status === 'PROVISIONING' ? 'text-yellow-500' : 'text-red-500'}`}>
+                      {sandboxState.status === 'PROVISIONING' ? 'PROVISIONING' : 'INVESTIGATION REQUIRED'}
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="py-8 text-center">
                 <div className="inline-block px-3 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-400 mb-4">
-                  SANDBOX STANDBY
+                  NO ACTIVE INCIDENT
                 </div>
-                <p className="text-slate-400 text-sm">No active mission. Cluster is operating normally.</p>
+                <p className="text-slate-400 text-sm">No sandbox currently assigned. Cluster is operating normally.</p>
               </div>
             )}
           </div>
@@ -221,15 +252,19 @@ export default function Dashboard() {
               <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0 hidden md:block"></div>
               
               {[
-                { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50', img: '/linux-logo.svg' },
-                { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/docker-logo.svg' },
-                { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/k8s-logo.svg' },
-                { label: 'CI/CD', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg' },
-                { label: 'DEVSECOPS', status: 'LOCKED', color: 'text-slate-600', border: 'border-white/10', img: '/bash-logo.svg' },
+                { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50', img: '/linux-logo.svg', icon: null },
+                { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/docker-logo.svg', icon: null },
+                { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/k8s-logo.svg', icon: null },
+                { label: 'CI/CD', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg', icon: null },
+                { label: 'DEVSECOPS', status: 'LOCKED', color: 'text-slate-600', border: 'border-white/10', img: null, icon: Shield },
               ].map((skill, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2 md:px-4 w-1/3 md:w-auto">
                   <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl border ${skill.border} bg-[#111111] flex items-center justify-center`}>
-                    <img src={skill.img} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                    {skill.img ? (
+                      <img src={skill.img} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                    ) : (
+                      skill.icon && <skill.icon className="w-6 h-6 md:w-8 md:h-8 opacity-80" />
+                    )}
                   </div>
                   <div className="text-center">
                     <div className="text-[9px] md:text-[10px] font-bold text-slate-300 font-mono mb-1">{skill.label}</div>
