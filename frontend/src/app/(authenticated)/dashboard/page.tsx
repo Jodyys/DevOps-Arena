@@ -145,14 +145,6 @@ export default function Dashboard() {
               <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0"></div>
               
               {[
-                { label: 'GIT', status: 'Waiting', icon: GitBranch, color: 'text-slate-500' },
-                { label: 'JENKINS', status: 'Waiting', icon: PlayCircle, color: 'text-slate-500' },
-                { label: 'DOCKER', status: 'Waiting', icon: Box, color: 'text-slate-500' },
-            <div className="flex items-center justify-between px-4 py-8 relative">
-              {/* Connecting Line */}
-              <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0"></div>
-              
-              {[
                 { label: 'GITHUB', status: 'READY', icon: GitBranch, color: 'text-emerald-500' },
                 { label: 'JENKINS', status: 'STANDBY', icon: PlayCircle, color: 'text-slate-500' },
                 { label: 'DOCKER', status: 'STANDBY', icon: Box, color: 'text-slate-500' },
