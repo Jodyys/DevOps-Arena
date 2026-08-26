@@ -149,10 +149,10 @@ export default function Dashboard() {
 
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
             <div className="flex items-center gap-2">
-              <Box className={`w-5 h-5 ${sandboxState.status !== 'STANDBY' ? 'text-blue-500' : 'text-slate-500'}`} />
+              <Box className={`w-5 h-5 ${sandboxState.status !== 'STANDBY' ? 'text-red-500' : 'text-slate-500'}`} />
               <div className="text-[9px] text-slate-500 font-mono">SANDBOX</div>
             </div>
-            <div className={`font-bold text-sm tracking-widest mt-1 ${sandboxState.status !== 'STANDBY' ? 'text-blue-500' : 'text-slate-500'}`}>
+            <div className={`font-bold text-sm tracking-widest mt-1 ${sandboxState.status !== 'STANDBY' ? 'text-red-500' : 'text-slate-500'}`}>
               {sandboxState.status !== 'STANDBY' ? `● ${sandboxState.status}` : '○ STANDBY'}
             </div>
           </div>
@@ -226,25 +226,56 @@ export default function Dashboard() {
             {activeMission ? (
               <div className="flex flex-col md:flex-row justify-between gap-6">
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-white mb-2 uppercase">MISSION M-{activeMission.id.toString().padStart(2, '0')}</h3>
-                  <p className="text-slate-400 text-sm mb-6 max-w-lg">
-                    {activeMission.title}
+                  <h3 className="text-xl md:text-2xl font-black text-white mb-2">{activeMission.title} (M-{activeMission.id.toString().padStart(2, '0')})</h3>
+                  <p className="text-slate-400 text-xs md:text-sm mb-6 max-w-lg">
+                    {activeMission.description || 'The backend service reported an anomaly or crash. Investigation required to restore full operations.'}
                   </p>
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    <div className="px-2 py-1 rounded bg-[#111111] border border-white/10 text-[10px] font-mono text-slate-400">
-                      Sandbox: <span className="text-white font-bold">{sandboxState.sandbox_id || sandboxState.status || 'ACTIVE'}</span>
+                  
+                  <div className="flex flex-wrap items-center justify-between gap-4 mt-8">
+                    <div className="flex flex-wrap gap-2">
+                      <div className="px-3 py-1.5 rounded bg-[#111111] border border-white/10 text-[10px] font-mono text-slate-400">
+                        Service: <span className="text-white">N/A</span>
+                      </div>
+                      <div className="px-3 py-1.5 rounded bg-[#111111] border border-white/10 text-[10px] font-mono text-slate-400">
+                        Namespace: <span className="text-white">{sandboxState.sandbox_id || 'N/A'}</span>
+                      </div>
+                      <div className="px-3 py-1.5 rounded bg-[#111111] border border-white/10 text-[10px] font-mono text-slate-400">
+                        Pod: <span className="text-white">N/A</span>
+                      </div>
+                    </div>
+                    
+                    <Link href={`/missions/${activeMission.id}`} className="inline-flex items-center px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold tracking-widest uppercase rounded shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all">
+                      INVESTIGATE INCIDENT <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </div>
+                </div>
+                
+                {/* Right side stats & icon */}
+                <div className="hidden md:flex gap-12 items-center">
+                  <div className="flex flex-col gap-4 min-w-[120px]">
+                    <div>
+                      <div className="text-[9px] text-slate-500 font-mono mb-1">STATUS</div>
+                      <div className={`font-bold text-xs font-mono tracking-widest ${sandboxState.status === 'PROVISIONING' ? 'text-yellow-500' : 'text-red-500'}`}>
+                        {sandboxState.status === 'PROVISIONING' ? 'PROVISIONING' : 'CrashLoopBackOff'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-500 font-mono mb-1">RESTART COUNT</div>
+                      <div className="font-bold text-xs font-mono text-white tracking-widest">
+                        N/A
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-500 font-mono mb-1">LAST RESTART</div>
+                      <div className="font-bold text-xs font-mono text-white tracking-widest">
+                        N/A
+                      </div>
                     </div>
                   </div>
-                  <Link href={`/missions/${activeMission.id}`} className="inline-flex items-center px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold tracking-widest uppercase rounded shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all">
-                    INVESTIGATE INCIDENT <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </div>
-                <div className="hidden md:flex flex-col gap-4 min-w-[200px]">
-                  <div>
-                    <div className="text-[9px] text-slate-500 font-mono mb-1">STATUS</div>
-                    <div className={`font-bold text-sm tracking-widest ${sandboxState.status === 'PROVISIONING' ? 'text-yellow-500' : 'text-red-500'}`}>
-                      {sandboxState.status === 'PROVISIONING' ? 'PROVISIONING' : 'INVESTIGATION REQUIRED'}
-                    </div>
+                  
+                  <div className="relative flex items-center justify-center opacity-80 mr-4">
+                    <Box className="w-24 h-24 text-red-500/40" strokeWidth={1} />
+                    <AlertTriangle className="w-8 h-8 text-red-500 absolute -bottom-2 -left-2 fill-[#0a0a0a]" />
                   </div>
                 </div>
               </div>
