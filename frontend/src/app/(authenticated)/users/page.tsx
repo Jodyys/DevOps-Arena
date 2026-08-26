@@ -229,9 +229,8 @@ export default function UsersPage() {
                           ${isCurrentUser ? 'bg-red-500/5 hover:bg-red-500/10 relative' : 'hover:bg-[#111]'}
                         `}
                       >
-                        {isCurrentUser && <td className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></td>}
-                        
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 relative">
+                          {isCurrentUser && <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>}
                           <div className="flex items-center gap-4">
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg shrink-0 border
                               ${isCurrentUser ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-[#151515] border-white/10 text-slate-400'}
