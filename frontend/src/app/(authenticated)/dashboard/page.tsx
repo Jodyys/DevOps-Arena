@@ -112,18 +112,20 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* LIVE DEVOPS OPERATIONS */}
+      {/* DEVOPS OPERATIONS OVERVIEW */}
       <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-5">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">LIVE DEVOPS OPERATIONS</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">DEVOPS OPERATIONS OVERVIEW</span>
           <span className="ml-auto text-[9px] text-slate-600 font-mono">Last updated: Just now <RotateCcw className="w-3 h-3 inline ml-1" /></span>
         </div>
         
         <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
             <div className="flex items-center gap-2">
-              <Server className="w-5 h-5 text-emerald-500" />
+              <div className="w-5 h-5 flex items-center justify-center rounded bg-emerald-500/10">
+                <img src="/k8s-logo.svg" className="w-4 h-4 opacity-80" alt="k8s" />
+              </div>
               <div className="text-[9px] text-slate-500 font-mono">CLUSTER STATUS</div>
             </div>
             <div className="text-emerald-400 font-bold text-sm tracking-widest mt-1">HEALTHY</div>
@@ -131,23 +133,26 @@ export default function Dashboard() {
           
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
             <div className="flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-yellow-500" />
+              <Network className="w-5 h-5 text-yellow-500" />
               <div className="text-[9px] text-slate-500 font-mono">CI/CD PIPELINE</div>
             </div>
             <div className="text-yellow-500 font-bold text-sm tracking-widest mt-1">STANDBY</div>
           </div>
 
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1">
-            <div className="text-[9px] text-slate-500 font-mono">SERVICES</div>
-            <div className="text-emerald-400 font-bold text-sm tracking-widest">READY</div>
+            <div className="flex items-center gap-2">
+              <Box className="w-5 h-5 text-slate-300" />
+              <div className="text-[9px] text-slate-500 font-mono">SERVICES</div>
+            </div>
+            <div className="text-emerald-400 font-bold text-sm tracking-widest mt-1">READY</div>
           </div>
 
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
             <div className="flex items-center gap-2">
-              <Box className={`w-5 h-5 ${sandboxState.status !== 'STANDBY' ? 'text-red-500' : 'text-slate-500'}`} />
+              <Box className={`w-5 h-5 ${sandboxState.status !== 'STANDBY' ? 'text-blue-500' : 'text-slate-500'}`} />
               <div className="text-[9px] text-slate-500 font-mono">SANDBOX</div>
             </div>
-            <div className={`font-bold text-sm tracking-widest mt-1 ${sandboxState.status !== 'STANDBY' ? 'text-red-500' : 'text-slate-500'}`}>
+            <div className={`font-bold text-sm tracking-widest mt-1 ${sandboxState.status !== 'STANDBY' ? 'text-blue-500' : 'text-slate-500'}`}>
               {sandboxState.status !== 'STANDBY' ? `● ${sandboxState.status}` : '○ STANDBY'}
             </div>
           </div>
@@ -169,30 +174,42 @@ export default function Dashboard() {
               <div className="text-[9px] font-mono text-slate-600">STANDBY</div>
             </div>
             
-            <div className="flex items-center justify-between px-4 py-8 relative">
-              {/* Connecting Line */}
-              <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0"></div>
+            <div className="flex items-center justify-between px-4 py-8 relative overflow-x-auto">
               
               {[
-                { label: 'GITHUB', status: 'READY', icon: GitBranch, color: 'text-emerald-500', img: null },
+                { label: 'GITHUB', status: 'READY', icon: Github, color: 'text-emerald-500', img: null },
                 { label: 'JENKINS', status: 'STANDBY', icon: null, color: 'text-slate-500', img: '/jenkins-logo.svg' },
                 { label: 'DOCKER', status: 'STANDBY', icon: null, color: 'text-slate-500', img: '/docker-logo.svg' },
                 { label: 'REGISTRY', status: 'STANDBY', icon: null, color: 'text-slate-500', img: '/docker-logo.svg' },
                 { label: 'KUBERNETES', status: 'READY', icon: null, color: 'text-emerald-500', img: '/k8s-logo.svg' },
-              ].map((step, i) => (
-                <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2">
-                  <div className={`w-12 h-12 rounded-lg border border-white/10 bg-[#111111] flex items-center justify-center ${step.color}`}>
-                    {step.img ? (
-                      <img src={step.img} className="w-6 h-6 opacity-80" alt={step.label} />
-                    ) : (
-                      step.icon && <step.icon className="w-6 h-6" />
-                    )}
+              ].map((step, i, arr) => (
+                <React.Fragment key={i}>
+                  <div className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2 min-w-[80px]">
+                    <div className={`w-14 h-14 rounded-xl border ${step.status === 'READY' ? 'border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-white/10'} bg-[#111111] flex items-center justify-center ${step.color} relative`}>
+                      {step.img ? (
+                        <img src={step.img} className="w-7 h-7 opacity-80" alt={step.label} />
+                      ) : (
+                        step.icon && <step.icon className="w-7 h-7" />
+                      )}
+                      
+                      {step.status === 'READY' && (
+                        <div className="absolute -bottom-2 bg-[#0a0a0a] rounded-full p-0.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 bg-[#0a0a0a]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center mt-2">
+                      <div className="text-[10px] font-bold text-slate-300 font-mono mb-1">{step.label}</div>
+                      <div className={`text-[9px] font-mono uppercase ${step.status === 'READY' ? 'text-emerald-500' : 'text-slate-600'}`}>{step.status}</div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-[10px] font-bold text-slate-300 font-mono mb-1">{step.label}</div>
-                    <div className={`text-[9px] font-mono uppercase ${step.status === 'READY' ? 'text-emerald-500' : 'text-slate-600'}`}>{step.status}</div>
-                  </div>
-                </div>
+                  
+                  {i < arr.length - 1 && (
+                    <div className={`hidden md:flex items-center justify-center flex-1 min-w-[30px] ${step.status === 'READY' ? 'text-emerald-500' : 'text-slate-700'}`}>
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
           </div>
