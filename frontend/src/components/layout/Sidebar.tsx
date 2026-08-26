@@ -20,12 +20,15 @@ export default function Sidebar({ profile }: { profile: any }) {
 
   return (
     <aside className="w-64 flex-shrink-0 border-r border-white/5 bg-[#050505]/95 backdrop-blur-md hidden md:flex flex-col z-40">
-      <div className="h-16 flex items-center px-6 border-b border-white/5">
-        <div className="flex items-center space-x-2">
+      <div className="h-20 flex flex-col justify-center px-6 border-b border-white/5">
+        <div className="flex items-center space-x-2 mb-1">
           <div className="border border-red-500 px-1.5 py-0.5 bg-red-500/10 text-red-500 font-mono font-bold text-xs">{`>_`}</div>
           <span className="text-base font-bold tracking-widest text-white">
             DEVOPS <span className="text-red-500">ARENA</span>
           </span>
+        </div>
+        <div className="text-[8px] font-mono text-slate-500 tracking-[0.2em] ml-1">
+          TRAIN. BREAK. FIX. DEPLOY.
         </div>
       </div>
       

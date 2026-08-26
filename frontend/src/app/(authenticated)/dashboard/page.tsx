@@ -91,47 +91,36 @@ export default function Dashboard() {
           <span className="ml-auto text-[9px] text-slate-600 font-mono">Last updated: Just now <RotateCcw className="w-3 h-3 inline ml-1" /></span>
         </div>
         
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-          <div className="border border-white/5 rounded p-3 bg-[#111111] flex items-center gap-3">
-            <Server className="w-8 h-8 text-emerald-500" />
-            <div>
-              <div className="text-[9px] text-slate-500 font-mono mb-1">CLUSTER STATUS</div>
-              <div className="text-emerald-400 font-bold text-sm tracking-widest">HEALTHY</div>
-              <div className="text-[9px] text-slate-500">N/A Nodes | N/A Pods</div>
+        <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
+          <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
+            <div className="flex items-center gap-2">
+              <Server className="w-5 h-5 text-emerald-500" />
+              <div className="text-[9px] text-slate-500 font-mono">CLUSTER STATUS</div>
             </div>
+            <div className="text-emerald-400 font-bold text-sm tracking-widest mt-1">HEALTHY</div>
           </div>
           
-          <div className="border border-white/5 rounded p-3 bg-[#111111] flex items-center gap-3">
-            <GitBranch className="w-8 h-8 text-yellow-500" />
-            <div>
-              <div className="text-[9px] text-slate-500 font-mono mb-1">CI/CD PIPELINE</div>
-              <div className="text-yellow-500 font-bold text-sm tracking-widest">STANDBY</div>
-              <div className="text-[9px] text-slate-500">No active builds</div>
+          <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
+            <div className="flex items-center gap-2">
+              <GitBranch className="w-5 h-5 text-yellow-500" />
+              <div className="text-[9px] text-slate-500 font-mono">CI/CD PIPELINE</div>
             </div>
+            <div className="text-yellow-500 font-bold text-sm tracking-widest mt-1">STANDBY</div>
           </div>
 
-          <div className="border border-white/5 rounded p-3 bg-[#111111] flex items-center gap-3">
-            <Box className="w-8 h-8 text-emerald-500" />
-            <div>
-              <div className="text-[9px] text-slate-500 font-mono mb-1">SERVICES</div>
-              <div className="text-emerald-400 font-bold text-sm tracking-widest">N/A</div>
-              <div className="text-[9px] text-slate-500">Metrics unavailable</div>
-            </div>
+          <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1">
+            <div className="text-[9px] text-slate-500 font-mono">SERVICES</div>
+            <div className="text-emerald-400 font-bold text-sm tracking-widest">HEALTHY</div>
           </div>
 
-          <div className="border border-white/5 rounded p-3 bg-[#111111]">
-            <div className="text-[9px] text-slate-500 font-mono mb-1">CPU USAGE</div>
-            <div className="text-slate-300 font-bold text-sm">N/A</div>
-          </div>
-          
-          <div className="border border-white/5 rounded p-3 bg-[#111111]">
-            <div className="text-[9px] text-slate-500 font-mono mb-1">MEMORY USAGE</div>
-            <div className="text-slate-300 font-bold text-sm">N/A</div>
-          </div>
-          
-          <div className="border border-white/5 rounded p-3 bg-[#111111]">
-            <div className="text-[9px] text-slate-500 font-mono mb-1">POD STATUS</div>
-            <div className="text-slate-300 font-bold text-sm">N/A</div>
+          <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
+            <div className="flex items-center gap-2">
+              <Box className={`w-5 h-5 ${hasActiveIncident ? 'text-red-500' : 'text-slate-500'}`} />
+              <div className="text-[9px] text-slate-500 font-mono">SANDBOX</div>
+            </div>
+            <div className={`font-bold text-sm tracking-widest mt-1 ${hasActiveIncident ? 'text-red-500' : 'text-slate-500'}`}>
+              {hasActiveIncident ? '● ACTIVE' : '○ STANDBY'}
+            </div>
           </div>
         </div>
       </div>
@@ -159,8 +148,16 @@ export default function Dashboard() {
                 { label: 'GIT', status: 'Waiting', icon: GitBranch, color: 'text-slate-500' },
                 { label: 'JENKINS', status: 'Waiting', icon: PlayCircle, color: 'text-slate-500' },
                 { label: 'DOCKER', status: 'Waiting', icon: Box, color: 'text-slate-500' },
-                { label: 'REGISTRY', status: 'Waiting', icon: Cloud, color: 'text-slate-500' },
-                { label: 'KUBERNETES', status: 'Waiting', icon: Server, color: 'text-slate-500' },
+            <div className="flex items-center justify-between px-4 py-8 relative">
+              {/* Connecting Line */}
+              <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0"></div>
+              
+              {[
+                { label: 'GITHUB', status: 'READY', icon: GitBranch, color: 'text-emerald-500' },
+                { label: 'JENKINS', status: 'STANDBY', icon: PlayCircle, color: 'text-slate-500' },
+                { label: 'DOCKER', status: 'STANDBY', icon: Box, color: 'text-slate-500' },
+                { label: 'REGISTRY', status: 'STANDBY', icon: Cloud, color: 'text-slate-500' },
+                { label: 'KUBERNETES', status: 'READY', icon: Server, color: 'text-emerald-500' },
               ].map((step, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2">
                   <div className={`w-12 h-12 rounded-lg border border-white/10 bg-[#111111] flex items-center justify-center ${step.color}`}>
@@ -168,7 +165,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-center">
                     <div className="text-[10px] font-bold text-slate-300 font-mono mb-1">{step.label}</div>
-                    <div className="text-[9px] text-slate-600 font-mono uppercase">{step.status}</div>
+                    <div className={`text-[9px] font-mono uppercase ${step.status === 'READY' ? 'text-emerald-500' : 'text-slate-600'}`}>{step.status}</div>
                   </div>
                 </div>
               ))}
@@ -187,16 +184,13 @@ export default function Dashboard() {
             {hasActiveIncident ? (
               <div className="flex flex-col md:flex-row justify-between gap-6">
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black text-white mb-2">Resolve Mission M-{(profile.continueMissionId || 0).toString().padStart(2, '0')}</h3>
+                  <h3 className="text-2xl font-black text-white mb-2 uppercase">MISSION M-{(profile.continueMissionId || 0).toString().padStart(2, '0')}</h3>
                   <p className="text-slate-400 text-sm mb-6 max-w-lg">
-                    An anomaly has been detected in the cluster. Investigate the sandbox environment and restore the service to operational status.
+                    KUBERNETES INCIDENT
                   </p>
                   <div className="flex flex-wrap gap-3 mb-6">
                     <div className="px-2 py-1 rounded bg-[#111111] border border-white/10 text-[10px] font-mono text-slate-400">
-                      Service: <span className="text-white">unknown</span>
-                    </div>
-                    <div className="px-2 py-1 rounded bg-red-500/10 border border-red-500/30 text-[10px] font-mono text-red-400">
-                      Namespace: <span className="font-bold">SANDBOX ACTIVE</span>
+                      Sandbox: <span className="text-white font-bold">ACTIVE</span>
                     </div>
                   </div>
                   <Link href={`/missions/${profile.continueMissionId}`} className="inline-flex items-center px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold tracking-widest uppercase rounded shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all">
@@ -206,20 +200,16 @@ export default function Dashboard() {
                 <div className="hidden md:flex flex-col gap-4 min-w-[200px]">
                   <div>
                     <div className="text-[9px] text-slate-500 font-mono mb-1">STATUS</div>
-                    <div className="text-red-500 font-bold text-sm tracking-widest">CRITICAL</div>
-                  </div>
-                  <div>
-                    <div className="text-[9px] text-slate-500 font-mono mb-1">RESTART COUNT</div>
-                    <div className="text-white font-mono text-sm">N/A</div>
+                    <div className="text-red-500 font-bold text-sm tracking-widest">INVESTIGATION REQUIRED</div>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="py-8 text-center">
-                <div className="inline-block px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 mb-4">
-                  NO ACTIVE INCIDENT
+                <div className="inline-block px-3 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-400 mb-4">
+                  SANDBOX STANDBY
                 </div>
-                <p className="text-slate-400 text-sm">No active sandbox incidents detected. Cluster is operating normally.</p>
+                <p className="text-slate-400 text-sm">No active mission. Cluster is operating normally.</p>
               </div>
             )}
           </div>
@@ -231,8 +221,8 @@ export default function Dashboard() {
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">OPERATIONAL SKILL MAP</span>
             </div>
             
-            <div className="flex items-center justify-between px-2 py-4 relative overflow-x-auto custom-scrollbar">
-              <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0"></div>
+            <div className="flex flex-wrap items-center justify-between px-2 py-4 relative gap-y-6">
+              <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0 hidden md:block"></div>
               
               {[
                 { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50' },
@@ -241,13 +231,13 @@ export default function Dashboard() {
                 { label: 'CI/CD', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50' },
                 { label: 'DEVSECOPS', status: 'LOCKED', color: 'text-slate-600', border: 'border-white/10' },
               ].map((skill, i) => (
-                <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-4 min-w-[120px]">
-                  <div className={`w-14 h-14 rounded-xl border ${skill.border} bg-[#111111] flex items-center justify-center`}>
-                    <img src={`/${skill.label.toLowerCase().replace('/','')}-logo.svg`} alt={skill.label} className="w-8 h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2 md:px-4 w-1/3 md:w-auto">
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl border ${skill.border} bg-[#111111] flex items-center justify-center`}>
+                    <img src={`/${skill.label.toLowerCase().replace('/','')}-logo.svg`} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
                   </div>
                   <div className="text-center">
-                    <div className="text-[10px] font-bold text-slate-300 font-mono mb-1">{skill.label}</div>
-                    <div className={`text-[9px] font-mono uppercase ${skill.color}`}>{skill.status}</div>
+                    <div className="text-[9px] md:text-[10px] font-bold text-slate-300 font-mono mb-1">{skill.label}</div>
+                    <div className={`text-[8px] md:text-[9px] font-mono uppercase ${skill.color}`}>{skill.status}</div>
                   </div>
                 </div>
               ))}
@@ -270,19 +260,18 @@ export default function Dashboard() {
             
             <div className="space-y-6">
               {[
-                { label: 'CPU USAGE', icon: Cpu },
-                { label: 'MEMORY USAGE', icon: HardDrive },
-                { label: 'NETWORK I/O', icon: Network },
+                { label: 'CPU', icon: Cpu },
+                { label: 'MEMORY', icon: HardDrive },
+                { label: 'NETWORK', icon: Network },
               ].map((chart, i) => (
-                <div key={i} className="bg-[#111111] border border-white/5 rounded p-4 h-32 flex flex-col">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="text-[9px] text-slate-500 font-mono flex items-center gap-1">
-                      <chart.icon className="w-3 h-3" /> {chart.label}
+                <div key={i} className="bg-[#111111] border border-white/5 rounded p-4 h-24 flex flex-col justify-center">
+                  <div className="flex justify-between items-center">
+                    <div className="text-[9px] text-slate-500 font-mono flex items-center gap-2">
+                      <chart.icon className="w-4 h-4 text-slate-600" /> {chart.label}
                     </div>
-                    <div className="text-[10px] text-slate-600 font-mono">N/A</div>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center border-t border-white/5 mt-2 pt-2">
-                    <span className="text-[10px] text-slate-600 font-mono">Waiting for metrics API...</span>
+                    <div className="text-[9px] text-emerald-500 font-mono tracking-widest">
+                      MONITORING READY
+                    </div>
                   </div>
                 </div>
               ))}
