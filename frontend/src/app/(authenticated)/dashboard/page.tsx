@@ -6,7 +6,7 @@ import {
   Trophy, Activity, Flame, ClipboardList, AlertTriangle, 
   GitBranch, Server, Box, GitCommit, PlayCircle, 
   CheckCircle2, ArrowRight, XCircle, Terminal, 
-  ShieldAlert, Activity as ActivityIcon, Cloud, Check, Cpu, HardDrive, Network
+  ShieldAlert, Activity as ActivityIcon, Cloud, Check, Cpu, HardDrive, Network, RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
 import { fetchApi } from '@/lib/api';
