@@ -110,7 +110,7 @@ export default function Dashboard() {
 
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1">
             <div className="text-[9px] text-slate-500 font-mono">SERVICES</div>
-            <div className="text-emerald-400 font-bold text-sm tracking-widest">HEALTHY</div>
+            <div className="text-emerald-400 font-bold text-sm tracking-widest">READY</div>
           </div>
 
           <div className="border border-white/5 rounded p-3 bg-[#111111] flex flex-col justify-center gap-1 col-span-2">
@@ -145,15 +145,19 @@ export default function Dashboard() {
               <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0"></div>
               
               {[
-                { label: 'GITHUB', status: 'READY', icon: GitBranch, color: 'text-emerald-500' },
-                { label: 'JENKINS', status: 'STANDBY', icon: PlayCircle, color: 'text-slate-500' },
-                { label: 'DOCKER', status: 'STANDBY', icon: Box, color: 'text-slate-500' },
-                { label: 'REGISTRY', status: 'STANDBY', icon: Cloud, color: 'text-slate-500' },
-                { label: 'KUBERNETES', status: 'READY', icon: Server, color: 'text-emerald-500' },
+                { label: 'GITHUB', status: 'READY', icon: GitBranch, color: 'text-emerald-500', img: null },
+                { label: 'JENKINS', status: 'STANDBY', icon: null, color: 'text-slate-500', img: '/jenkins-logo.svg' },
+                { label: 'DOCKER', status: 'STANDBY', icon: null, color: 'text-slate-500', img: '/docker-logo.svg' },
+                { label: 'REGISTRY', status: 'STANDBY', icon: null, color: 'text-slate-500', img: '/docker-logo.svg' },
+                { label: 'KUBERNETES', status: 'READY', icon: null, color: 'text-emerald-500', img: '/k8s-logo.svg' },
               ].map((step, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2">
                   <div className={`w-12 h-12 rounded-lg border border-white/10 bg-[#111111] flex items-center justify-center ${step.color}`}>
-                    <step.icon className="w-6 h-6" />
+                    {step.img ? (
+                      <img src={step.img} className="w-6 h-6 opacity-80" alt={step.label} />
+                    ) : (
+                      step.icon && <step.icon className="w-6 h-6" />
+                    )}
                   </div>
                   <div className="text-center">
                     <div className="text-[10px] font-bold text-slate-300 font-mono mb-1">{step.label}</div>
@@ -217,15 +221,15 @@ export default function Dashboard() {
               <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0 hidden md:block"></div>
               
               {[
-                { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50' },
-                { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50' },
-                { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50' },
-                { label: 'CI/CD', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50' },
-                { label: 'DEVSECOPS', status: 'LOCKED', color: 'text-slate-600', border: 'border-white/10' },
+                { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50', img: '/linux-logo.svg' },
+                { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/docker-logo.svg' },
+                { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/k8s-logo.svg' },
+                { label: 'CI/CD', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg' },
+                { label: 'DEVSECOPS', status: 'LOCKED', color: 'text-slate-600', border: 'border-white/10', img: '/bash-logo.svg' },
               ].map((skill, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2 md:px-4 w-1/3 md:w-auto">
                   <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl border ${skill.border} bg-[#111111] flex items-center justify-center`}>
-                    <img src={`/${skill.label.toLowerCase().replace('/','')}-logo.svg`} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                    <img src={skill.img} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
                   </div>
                   <div className="text-center">
                     <div className="text-[9px] md:text-[10px] font-bold text-slate-300 font-mono mb-1">{skill.label}</div>
