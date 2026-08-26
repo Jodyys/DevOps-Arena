@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/lib/api';
-import { Trophy, Flame, Shield, Award, Users, Activity, Crown, Star } from 'lucide-react';
+import { Trophy, Flame, Shield, Award, Users, Activity, Crown, Star, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LeaderboardPage() {
