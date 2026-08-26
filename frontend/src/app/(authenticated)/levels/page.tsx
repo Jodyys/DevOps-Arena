@@ -224,7 +224,7 @@ export default function Levels() {
                                )}
                              </div>
                              <h2 className={`text-xl md:text-2xl font-black tracking-tight ${isLocked ? 'text-slate-500' : 'text-white'}`}>
-                               {level.category} / {level.name}
+                               {level.name}
                              </h2>
                            </div>
                            <div className={`self-start text-[9px] font-mono font-bold tracking-widest uppercase px-3 py-1.5 rounded border
