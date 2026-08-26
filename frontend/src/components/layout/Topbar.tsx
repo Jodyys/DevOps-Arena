@@ -148,7 +148,11 @@ export default function Topbar({ profile }: { profile: any }) {
         </div>
 
         <div className="flex items-center h-full px-6 border-l border-white/5 gap-4">
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="flex flex-col items-end">
+              <span className="text-sm font-bold text-slate-300 leading-tight">{profile?.username || 'admin'}</span>
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">OPERATOR</span>
+            </div>
             <div className="w-8 h-8 border border-red-500/40 rounded bg-black shadow-[0_0_10px_rgba(239,68,68,0.3)] relative overflow-hidden">
                <img 
                  src="/hacker-avatar.jpg" 
@@ -164,7 +168,6 @@ export default function Topbar({ profile }: { profile: any }) {
                />
                <div className="absolute inset-0 ring-1 ring-inset ring-red-500/30 rounded pointer-events-none"></div>
             </div>
-            <span className="text-sm font-bold text-slate-300">{profile?.username || 'admin'}</span>
           </div>
           <button 
             onClick={handleLogout}

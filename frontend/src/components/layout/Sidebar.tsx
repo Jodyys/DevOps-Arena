@@ -104,10 +104,21 @@ export default function Sidebar({ profile }: { profile: any }) {
           <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">
             System
           </div>
-          <div className="flex items-center px-4 py-2.5 rounded-md text-slate-400 bg-[#0a0a0a] border border-white/5">
-            <Server className="w-4 h-4 mr-3 text-slate-500" />
-            <span className="font-mono text-sm tracking-wide flex-1">Server Status</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+          <div className="space-y-1">
+            <Link
+              href="/settings"
+              className={`flex items-center px-4 py-2.5 rounded-md transition-all duration-200 group text-slate-400 hover:bg-[#111111] hover:text-slate-200 border border-transparent`}
+            >
+              <Server className={`w-4 h-4 mr-3 text-slate-500 group-hover:text-slate-400`} />
+              <span className="font-mono text-sm tracking-wide">Settings</span>
+            </Link>
+            <Link
+              href="/docs"
+              className={`flex items-center px-4 py-2.5 rounded-md transition-all duration-200 group text-slate-400 hover:bg-[#111111] hover:text-slate-200 border border-transparent`}
+            >
+              <Map className={`w-4 h-4 mr-3 text-slate-500 group-hover:text-slate-400`} />
+              <span className="font-mono text-sm tracking-wide">Documentation</span>
+            </Link>
           </div>
         </div>
 
@@ -128,9 +139,13 @@ export default function Sidebar({ profile }: { profile: any }) {
                   style={{ width: `${Math.min(100, ((profile.total_xp || 0) / (profile.nextLevelXp || 200)) * 100)}%` }}
                 ></div>
               </div>
-              <div className="text-[9px] text-slate-500 font-mono text-right">
+              <div className="text-[9px] text-slate-500 font-mono text-right mb-4">
                 {profile.total_xp || 0} / {profile.nextLevelXp || 200} XP
               </div>
+              <Link href="/profile" className="flex items-center justify-between px-3 py-2 border border-white/10 rounded bg-[#111111] hover:bg-slate-800 text-[10px] font-mono tracking-widest uppercase text-slate-300 transition-colors group">
+                VIEW PROFILE
+                <span className="text-slate-500 group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
             </>
           ) : (
             <div className="text-xs text-slate-500 animate-pulse">Loading profile...</div>
