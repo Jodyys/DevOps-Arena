@@ -153,15 +153,17 @@ async function startChallenge(missionId, userId) {
             await k8sRbacApi.createNamespacedRoleBinding(namespaceName, manifest);
           } else if (kind === 'ServiceAccount') {
             await k8sApi.createNamespacedServiceAccount(namespaceName, manifest);
+          } else if (kind === 'Job') {
+            await k8sBatchApi.createNamespacedJob(namespaceName, manifest);
           } else {
-            console.warn(`Unsupported kind: ${kind} in ${challengeFile}`);
+            console.error(`Unsupported kind: ${kind} in ${challengeFile}`);
           }
         } catch (applyErr) {
           console.error(`Error applying ${kind} in ${namespaceName}:`, applyErr.body ? applyErr.body.message : applyErr.message);
         }
       }
     } else {
-      console.warn(`Template ${yamlPath} not found! Mission ${missionId} has no resources.`);
+      console.error(`ERROR: Challenge manifest not found at ${yamlPath}. Mission resources for ${missionId} will not be deployed.`);
     }
 
     // Special case for M41 if it still applies
