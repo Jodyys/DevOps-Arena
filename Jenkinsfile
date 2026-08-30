@@ -29,6 +29,7 @@ pipeline {
             steps {
                 dir('backend') {
                     sh 'npm install'
+                    sh 'npm audit || true'
                 }
             }
         }
@@ -37,6 +38,22 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh 'npm install'
+                    sh 'npm audit || true'
+                }
+            }
+        }
+
+        stage('SAST: Source Code Scan') {
+            when {
+                expression { return !params.ROLLBACK_TEST }
+            }
+            steps {
+                sh "trivy fs --exit-code 0 --severity HIGH,CRITICAL --no-progress . > trivy-sast-report.txt"
+                sh "cat trivy-sast-report.txt"
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-sast-report.txt', allowEmptyArchive: true
                 }
             }
         }
@@ -56,17 +73,21 @@ pipeline {
                 expression { return !params.ROLLBACK_TEST }
             }
             steps {
-                // Run scan and output to file
-                sh "trivy image --exit-code 0 --severity ${TRIVY_SEVERITY} --no-progress --output trivy-frontend-report.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
-                sh "trivy image --exit-code 0 --severity ${TRIVY_SEVERITY} --no-progress --output trivy-backend-report.txt ${APP_IMAGE}:backend-${GIT_SHA}"
+                // Warning for HIGH severity (exit-code 0)
+                sh "trivy image --exit-code 0 --severity HIGH --no-progress --output trivy-frontend-high.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
+                sh "trivy image --exit-code 0 --severity HIGH --no-progress --output trivy-backend-high.txt ${APP_IMAGE}:backend-${GIT_SHA}"
+                
+                // Fail pipeline for CRITICAL severity (exit-code 1)
+                sh "trivy image --exit-code 1 --severity CRITICAL --no-progress --output trivy-frontend-critical.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
+                sh "trivy image --exit-code 1 --severity CRITICAL --no-progress --output trivy-backend-critical.txt ${APP_IMAGE}:backend-${GIT_SHA}"
                 
                 // Display in console as well for quick view
-                sh "cat trivy-frontend-report.txt"
-                sh "cat trivy-backend-report.txt"
+                sh "cat trivy-frontend-high.txt trivy-frontend-critical.txt || true"
+                sh "cat trivy-backend-high.txt trivy-backend-critical.txt || true"
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'trivy-*-report.txt', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'trivy-*.txt', allowEmptyArchive: true
                 }
             }
         }
@@ -80,6 +101,21 @@ pipeline {
                     sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
                     sh "docker push ${APP_IMAGE}:frontend-${GIT_SHA}"
                     sh "docker push ${APP_IMAGE}:backend-${GIT_SHA}"
+                }
+            }
+        }
+
+        stage('IaC: Config Scan') {
+            when {
+                expression { return !params.ROLLBACK_TEST }
+            }
+            steps {
+                sh "trivy config --exit-code 0 --severity HIGH,CRITICAL --no-progress k8s/ > trivy-iac-report.txt"
+                sh "cat trivy-iac-report.txt"
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-iac-report.txt', allowEmptyArchive: true
                 }
             }
         }
