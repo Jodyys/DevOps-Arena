@@ -52,10 +52,6 @@ data:
           containers:
             - name: postgres
               image: postgres:15-alpine
-              securityContext:
-                readOnlyRootFilesystem: true
-                runAsNonRoot: true
-                runAsUser: 1000
               env:
                 - name: POSTGRES_USER
                   value: "devops_arena"
@@ -85,10 +81,6 @@ data:
           containers:
             - name: backend
               image: postgres:15-alpine
-              securityContext:
-                readOnlyRootFilesystem: true
-                runAsNonRoot: true
-                runAsUser: 1000
               env:
                 - name: DB_HOST
                   value: "wrong-db-service"
@@ -128,10 +120,6 @@ data:
           - name: app
             # BROKEN: Image does not exist
             image: jodyys/devops-arena-backend:does-not-exist
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 4000
   mission-5.yaml: |
@@ -154,10 +142,6 @@ data:
           containers:
           - name: app
             image: busybox:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             # BROKEN: Causes a crash loop because it exits immediately
             command: ["/bin/sh", "-c", "echo 'Starting...' && exit 1"]
   mission-6.yaml: |
@@ -178,10 +162,6 @@ data:
           containers:
           - name: app
             image: nginx:alpine
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 80
     ---
@@ -215,10 +195,6 @@ data:
           containers:
           - name: app
             image: nginx:alpine
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 80
     ---
@@ -297,10 +273,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -333,10 +305,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -367,10 +335,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -398,10 +362,6 @@ data:
           containers:
           - name: frontend
             image: nginx:alpine
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 80
     ---
@@ -441,10 +401,6 @@ data:
           containers:
           - name: nginx
             image: nginx:alpine
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 80
             readinessProbe:
@@ -489,10 +445,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c", "if [ \"$(cat /config/APP_ENV)\" = \"production\" ]; then while true; do sleep 3600; done; else exit 1; fi"]
             volumeMounts:
             - name: config-volume
@@ -519,10 +471,6 @@ data:
           containers:
           - name: app
             image: nginx:this-image-does-not-exist
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 80
   mission-19.yaml: |
@@ -549,10 +497,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c", "if [ -z \"$DB_HOST\" ]; then echo 'Missing DB_HOST'; exit 1; else while true; do sleep 3600; done; fi"]
   mission-20.yaml: |
     apiVersion: rbac.authorization.k8s.io/v1
@@ -595,10 +539,6 @@ data:
           containers:
           - name: kubectl
             image: bitnami/kubectl:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c", "if kubectl get secrets; then while true; do sleep 3600; done; else exit 1; fi"]
   mission-21.yaml: |
     apiVersion: apps/v1
@@ -624,10 +564,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -669,10 +605,6 @@ data:
           containers:
           - name: alpine
             image: node:18-alpine
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -712,10 +644,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -751,10 +679,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -795,10 +719,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
               - |
@@ -836,10 +756,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
             - |
@@ -887,10 +803,6 @@ data:
           initContainers:
           - name: init-perms
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
             - |
@@ -1069,10 +981,6 @@ data:
           containers:
           - name: nginx
             image: nginx:alpine
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             ports:
             - containerPort: 80
             securityContext:
@@ -1147,10 +1055,6 @@ data:
           containers:
           - name: alpine
             image: alpine:latest
-            securityContext:
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
             command: ["/bin/sh", "-c"]
             args:
             - |

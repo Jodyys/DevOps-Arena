@@ -21,10 +21,6 @@ spec:
       initContainers:
       - name: init-perms
         image: alpine:latest
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 1000
         command: ["/bin/sh", "-c"]
         args:
         - |

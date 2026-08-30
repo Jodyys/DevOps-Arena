@@ -21,10 +21,6 @@ spec:
       containers:
       - name: nginx
         image: nginx:alpine
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 1000
         ports:
         - containerPort: 80
         readinessProbe:

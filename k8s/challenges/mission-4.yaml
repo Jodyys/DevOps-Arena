@@ -18,9 +18,5 @@ spec:
       - name: app
         # BROKEN: Image does not exist
         image: jodyys/devops-arena-backend:does-not-exist
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 1000
         ports:
         - containerPort: 4000

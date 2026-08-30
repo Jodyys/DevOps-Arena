@@ -32,10 +32,6 @@ spec:
       containers:
         - name: backend
           image: jodyys/devops-arena:backend-INITIAL_DEPLOYMENT
-          securityContext:
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            runAsUser: 1000
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:

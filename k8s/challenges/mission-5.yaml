@@ -17,9 +17,5 @@ spec:
       containers:
       - name: app
         image: busybox:latest
-        securityContext:
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          runAsUser: 1000
         # BROKEN: Causes a crash loop because it exits immediately
         command: ["/bin/sh", "-c", "echo 'Starting...' && exit 1"]
