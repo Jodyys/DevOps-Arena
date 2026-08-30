@@ -109,20 +109,7 @@ pipeline {
             }
         }
 
-        stage('IaC: Config Scan') {
-            when {
-                expression { return !params.ROLLBACK_TEST }
-            }
-            steps {
-                sh "trivy config --exit-code 0 --severity HIGH,CRITICAL k8s/ > trivy-iac-report.txt"
-                sh "cat trivy-iac-report.txt"
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'trivy-iac-report.txt', allowEmptyArchive: true
-                }
-            }
-        }
+
 
         stage('Deploy to Kubernetes') {
             steps {

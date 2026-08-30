@@ -18,6 +18,10 @@ spec:
       containers:
         - name: frontend
           image: jodyys/devops-arena:frontend-INITIAL_DEPLOYMENT
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: tmp-volume
