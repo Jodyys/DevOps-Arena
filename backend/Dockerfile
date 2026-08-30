@@ -13,7 +13,7 @@ FROM node:22-alpine AS runner
 RUN apk update && apk upgrade --no-cache
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Run as non-root user
 USER node
@@ -24,6 +24,6 @@ COPY --from=builder --chown=node:node /app/src ./src
 
 EXPOSE 4000
 
-ENV PORT 4000
+ENV PORT=4000
 
 CMD ["node", "src/index.js"]
