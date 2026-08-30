@@ -303,15 +303,15 @@ const challengeValidator = async (missionId, k8sApi, k8sAppApi, k8sNetworkingApi
       case 17: // Fix ConfigMap Mount
       case 18: // ImagePullBackOff
       case 19: // CrashLoopBackOff (Env Var)
-      case 20: // Fix RBAC (ServiceAccount) - validate RoleBinding exists linking secret-reader role
-        return await validateRbac(k8sRbacApi, namespace);
-        
       case 33: // ConfigMap Value Misconfiguration
       case 36: // Kubernetes CrashLoopBackOff
       case 37: // Kubernetes Secret Configuration
       case 40: // Docker Image Tag Failure
       case 41: // Kubernetes Deployment Rollback
         return await validatePodRunning(k8sApi, namespace, labelSelector);
+
+      case 20: // Fix RBAC (ServiceAccount) - validate RoleBinding exists linking secret-reader role
+        return await validateRbac(k8sRbacApi, namespace);
         
       case 34: // Fix Failed Kubernetes Deployment
         return await validateDeployment(k8sAppApi, namespace, labelSelector);
