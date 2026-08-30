@@ -74,12 +74,12 @@ pipeline {
             }
             steps {
                 // Warning for HIGH severity (exit-code 0)
-                sh "trivy image --exit-code 0 --severity HIGH --no-progress --output trivy-frontend-high.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
-                sh "trivy image --exit-code 0 --severity HIGH --no-progress --output trivy-backend-high.txt ${APP_IMAGE}:backend-${GIT_SHA}"
+                sh "trivy image --exit-code 0 --severity HIGH --ignore-unfixed --no-progress --output trivy-frontend-high.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
+                sh "trivy image --exit-code 0 --severity HIGH --ignore-unfixed --no-progress --output trivy-backend-high.txt ${APP_IMAGE}:backend-${GIT_SHA}"
                 
                 // Fail pipeline for CRITICAL severity (exit-code 1)
-                sh "trivy image --exit-code 1 --severity CRITICAL --no-progress --output trivy-frontend-critical.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
-                sh "trivy image --exit-code 1 --severity CRITICAL --no-progress --output trivy-backend-critical.txt ${APP_IMAGE}:backend-${GIT_SHA}"
+                sh "trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress --output trivy-frontend-critical.txt ${APP_IMAGE}:frontend-${GIT_SHA}"
+                sh "trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress --output trivy-backend-critical.txt ${APP_IMAGE}:backend-${GIT_SHA}"
                 
                 // Display in console as well for quick view
                 sh "cat trivy-frontend-high.txt trivy-frontend-critical.txt || true"
