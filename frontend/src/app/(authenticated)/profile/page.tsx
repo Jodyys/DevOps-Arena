@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { fetchApi } from '@/lib/api';
 import { 
   User, Shield, ShieldAlert, Award, Zap, Activity, Flame, 
-  Terminal, Trophy, Calendar, CheckCircle2, Star, Clock 
+  Terminal, Trophy, Calendar, CheckCircle2, Star, Clock, ArrowRight 
 } from 'lucide-react';
 import Link from 'next/link';
 
