@@ -1,70 +1,65 @@
 # DevOps Arena
 
-## Overview
-DevOps Arena is a mini-game based web application designed for learning DevOps end-to-end. Players take on the role of a DevOps Engineer and must solve various incidents and deployment challenges.
+Welcome to **DevOps Arena**! A platform designed to test, practice, and challenge your DevOps skills.
 
-## Architecture
-The application uses a modern web stack:
-- Next.js Frontend
-- Node.js + Express Backend
-- PostgreSQL Database
-- Redis Cache
-- Docker & Kubernetes for infrastructure
+## 🏗️ Architecture & Topology
 
-## Tech Stack
-- **Frontend**: Next.js (React), Tailwind CSS
-- **Backend**: Node.js, Express, Pino, Zod, JWT
-- **Database**: PostgreSQL, Redis
-- **Infra**: Docker, Docker Compose
+The application is deployed on Kubernetes using a microservices-oriented approach. It consists of a Frontend, a Backend API, a PostgreSQL database, and a Redis cache, all routed through an NGINX Ingress Controller.
 
-## Project Structure
-This is a monorepo containing:
-- `frontend/`: Next.js web application
-- `backend/`: Node.js Express API
-- `database/`: Database initialization scripts
-- `docker-compose.yml`: Local infrastructure setup
+### Topology Diagram
 
-## Prerequisites
-- Node.js (v18+)
-- Docker and Docker Compose
-- Git
+```mermaid
+graph TD
+    User([User / Browser])
+    Ingress[NGINX Ingress Controller<br>(devops-arena.local)]
 
-## Environment Variables
-Copy `.env.example` to `.env` in the root directory before starting the application:
-```bash
-cp .env.example .env
+    subgraph Kubernetes Cluster [Kubernetes Cluster (ns-devops-arena)]
+        Frontend[Frontend Pod<br>Next.js:3001]
+        Backend[Backend Pod<br>Node.js/Express:4000]
+        Postgres[(PostgreSQL<br>Stateful/DB:5432)]
+        Redis[(Redis<br>Cache:6379)]
+        
+        Challenges[Challenges ConfigMap<br>(Mounted as Volume)]
+    end
+
+    User -->|HTTP Request| Ingress
+    Ingress -->|Path: /| Frontend
+    Ingress -->|Path: /api| Backend
+    Backend -->|Read/Write| Postgres
+    Backend -->|Cache/PubSub| Redis
+    Backend -->|Read| Challenges
 ```
 
-## How to Run (Docker Compose)
-1. Copy `.env.example` to `.env`
-2. Start the database and redis: `docker compose up -d postgres redis`
-3. Start backend: `cd backend && npm install && npm run dev`
-4. Start frontend: `cd frontend && npm install && npm run dev`
+## 🚀 Deployment (DevOps Perspective)
 
-Atau jalankan semuanya sekaligus:
-```bash
-docker compose up -d --build
-```
+The infrastructure and deployment definitions are managed via Kubernetes manifests located in the `k8s/` directory.
 
-## How to Run (Kubernetes)
-For instructions on deploying the application to a local Kubernetes cluster, see [docs/kubernetes.md](docs/kubernetes.md).
+### Key Components
 
-## Database
-The PostgreSQL database is automatically initialized with the schema and seed data found in `database/init.sql` when running the Docker Compose stack for the first time.
+1. **Namespace Isolation:** All resources are isolated within the `ns-devops-arena` namespace.
+2. **Ingress Controller:** NGINX is used to route external traffic to the internal frontend and backend services based on path prefixes (`/` and `/api`).
+3. **Backend Service:**
+   - Deployed as a `Deployment` with a dedicated Service Account (`backend-sa`).
+   - Hardened with `readOnlyRootFilesystem: true` and runs as a non-root user (`runAsUser: 1000`) for enhanced security.
+   - Credentials and environment variables are injected securely using Kubernetes `Secret`.
+   - The Challenges configurations are mounted via a `ConfigMap` (`backend-challenges-cm`) as a volume inside the backend pod.
+   - Resource limits (CPU: 500m, Memory: 512Mi) and requests are explicitly defined for Quality of Service (QoS).
+4. **Frontend Service:**
+   - Next.js application served via a `Deployment`.
+5. **Databases (PostgreSQL & Redis):**
+   - Provide state persistence and caching for the arena.
 
-## API
-The backend exposes a RESTful API at `http://localhost:4000/api`.
-Health check is available at `http://localhost:4000/health`.
+### Security & Hardening
 
-## Testing
-(TBD)
+- **Vulnerability Scanning:** Container images (Frontend & Backend) are routinely scanned using Trivy for HIGH and CRITICAL vulnerabilities before deployment.
+- **Rootless Containers:** Dockerfiles and Kubernetes Pod Specs are configured to run applications as non-root users (`USER node`).
+- **Dependency Management:** Critical security vulnerabilities in nested NPM dependencies (e.g., `tar`, `postcss`) are patched using `overrides` in `package.json`.
 
-## Troubleshooting
-- If the database fails to initialize, remove the Docker volumes: `docker compose down -v` and try again.
+## 🛠️ CI/CD Pipeline Workflow
 
-## Roadmap
-- Sprint 1: MVP Application Setup
-- Sprint 2: Docker & Containerization
-- Sprint 3: Kubernetes Deployment
-- Sprint 4: CI/CD Pipeline
-- Sprint 5: GitOps with ArgoCD
+The project utilizes an automated CI/CD pipeline to streamline the build and deployment process:
+1. **Code Checkout**
+2. **Security Audits:** Source Code (SAST) and nested dependency checks.
+3. **Container Build:** Leveraging multi-stage Docker builds to produce optimized and lightweight Alpine-based images.
+4. **Image Scanning (Trivy):** Thorough scanning of the resulting Docker images to block vulnerabilities from entering production.
+5. **Deployment:** Seamless application of the Kubernetes manifests (`k8s/platform/`) to the target cluster.

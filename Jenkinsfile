@@ -30,6 +30,7 @@ pipeline {
                 dir('backend') {
                     sh 'npm install'
                     sh 'npm audit || true'
+                    sh 'npm test'
                 }
             }
         }
@@ -39,6 +40,7 @@ pipeline {
                 dir('frontend') {
                     sh 'npm install'
                     sh 'npm audit || true'
+                    sh 'npm run lint'
                 }
             }
         }
