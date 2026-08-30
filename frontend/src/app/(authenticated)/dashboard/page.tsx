@@ -303,8 +303,7 @@ export default function Dashboard() {
                 { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50', img: '/linux-logo.svg', icon: null },
                 { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/docker-logo.svg', icon: null },
                 { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/k8s-logo.svg', icon: null },
-                { label: 'CI/CD', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg', icon: null },
-                { label: 'DEVSECOPS', status: 'LOCKED', color: 'text-slate-600', border: 'border-white/10', img: null, icon: Shield },
+                { label: 'CI/CD & DEVSECOPS', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg', icon: null },
               ].map((skill, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2 md:px-4 w-1/3 md:w-auto">
                   <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl border ${skill.border} bg-[#111111] flex items-center justify-center`}>
@@ -364,7 +363,7 @@ export default function Dashboard() {
                 <Terminal className="w-4 h-4 text-red-500" />
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">OPERATOR LOGBOOK</span>
               </div>
-              <Link href="/profile" className="text-[9px] text-blue-400 hover:text-blue-300 font-mono flex items-center">
+              <Link href="/logs" className="text-[9px] text-blue-400 hover:text-blue-300 font-mono flex items-center">
                 View all logs <ArrowRight className="w-3 h-3 ml-1" />
               </Link>
             </div>

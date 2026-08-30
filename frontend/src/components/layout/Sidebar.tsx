@@ -149,6 +149,7 @@ export default function Sidebar({ profile }: { profile: any }) {
                 VIEW PROFILE
                 <span className="text-slate-500 group-hover:translate-x-1 transition-transform">→</span>
               </Link>
+
             </>
           ) : (
             <div className="text-xs text-slate-500 animate-pulse">Loading profile...</div>

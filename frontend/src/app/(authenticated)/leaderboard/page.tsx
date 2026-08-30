@@ -87,20 +87,7 @@ export default function LeaderboardPage() {
           
         </div>
 
-        {/* FILTERS */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-12">
-          <div className="flex gap-6 border-b border-white/5 px-2 w-full sm:w-auto">
-            <button className="pb-3 border-b-2 border-red-500 text-white text-[11px] font-bold tracking-widest uppercase">ALL TIME</button>
-            <button className="pb-3 border-b-2 border-transparent text-slate-500 text-[11px] font-bold tracking-widest uppercase cursor-not-allowed">THIS MONTH</button>
-            <button className="pb-3 border-b-2 border-transparent text-slate-500 text-[11px] font-bold tracking-widest uppercase cursor-not-allowed">THIS WEEK</button>
-          </div>
-          
-          <div className="flex gap-4 w-full sm:w-auto">
-            <select className="bg-[#111] border border-white/10 text-slate-300 text-xs font-bold uppercase tracking-widest rounded px-4 py-2 outline-none focus:border-red-500">
-              <option>ALL SKILLS</option>
-            </select>
-          </div>
-        </div>
+
 
         {loading ? (
           <div className="flex justify-center py-20">

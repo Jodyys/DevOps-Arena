@@ -114,10 +114,7 @@ export default function UsersPage() {
                 className="w-full bg-[#111] border border-white/10 rounded-md py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
               />
             </div>
-            {/* Keeping visual button but it only works if backend has a route. Since it doesn't, we just visually show it as disabled/mock for the UI screenshot matching. */}
-            <button className="w-full sm:w-auto px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-widest rounded-md transition-colors shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-              + Add Operator
-            </button>
+
           </div>
         </header>
 
@@ -212,7 +209,7 @@ export default function UsersPage() {
                     <th className="px-6 py-4">STATUS</th>
                     <th className="px-6 py-4">JOINED DATE</th>
                     <th className="px-6 py-4">LAST ACTIVE</th>
-                    <th className="px-6 py-4 text-right">ACTIONS</th>
+
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -288,11 +285,7 @@ export default function UsersPage() {
                           </div>
                         </td>
                         
-                        <td className="px-6 py-4 text-right">
-                          <button className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-white transition-colors px-3 py-1.5 border border-white/5 hover:border-white/20 rounded bg-[#111] hover:bg-white/5">
-                            VIEW LOG
-                          </button>
-                        </td>
+
                       </tr>
                     );
                   })}

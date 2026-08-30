@@ -173,8 +173,6 @@ export default function LevelDetail() {
         {/* MISSION TABS */}
         <div className="flex gap-8 mb-8 border-b border-white/5 pb-0">
            <div className="pb-3 border-b-2 border-red-500 text-white text-[11px] font-bold tracking-widest uppercase">MISSIONS</div>
-           <div className="pb-3 border-b-2 border-transparent text-slate-500 text-[11px] font-bold tracking-widest uppercase cursor-not-allowed">RESOURCES</div>
-           <div className="pb-3 border-b-2 border-transparent text-slate-500 text-[11px] font-bold tracking-widest uppercase cursor-not-allowed">DISCUSSION</div>
         </div>
 
         {/* 2-COLUMN HUB */}
@@ -346,9 +344,6 @@ export default function LevelDetail() {
 
                   {/* ACTIONS */}
                   <div className="mt-auto pt-6 border-t border-white/5 flex flex-col sm:flex-row gap-4">
-                    <button className="px-6 py-3.5 bg-[#111] hover:bg-[#151515] border border-white/10 text-white text-[11px] font-bold tracking-widest uppercase rounded-lg transition-colors flex items-center justify-center shrink-0">
-                      <TerminalSquare className="w-4 h-4 mr-2" /> OPEN TERMINAL
-                    </button>
                     <Link href={`/missions/${selectedMissionId}`} className={`flex-1 flex justify-center items-center py-3.5 text-white text-[11px] font-bold tracking-widest uppercase rounded-lg transition-all shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]
                       ${listMissionData?.status === 'completed' ? 'bg-slate-700 hover:bg-slate-600 shadow-none' : 'bg-red-600 hover:bg-red-500'}
                     `}>
