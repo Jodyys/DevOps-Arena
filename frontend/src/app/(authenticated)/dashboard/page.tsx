@@ -300,18 +300,14 @@ export default function Dashboard() {
               <div className="absolute left-10 right-10 top-1/2 h-0.5 bg-white/5 -translate-y-1/2 z-0 hidden md:block"></div>
               
               {[
-                { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50', img: '/linux-logo.svg', icon: null },
-                { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/docker-logo.svg', icon: null },
-                { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/k8s-logo.svg', icon: null },
-                { label: 'CI/CD & DEVSECOPS', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg', icon: null },
+                { label: 'LINUX', status: 'COMPLETED', color: 'text-emerald-500', border: 'border-emerald-500/50', img: '/linux-logo.svg' },
+                { label: 'DOCKER', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/docker-logo.svg' },
+                { label: 'KUBERNETES', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/k8s-logo.svg' },
+                { label: 'CI/CD & DEVSECOPS', status: 'IN PROGRESS', color: 'text-yellow-500', border: 'border-yellow-500/50', img: '/jenkins-logo.svg' },
               ].map((skill, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-3 bg-[#0a0a0a] px-2 md:px-4 w-1/3 md:w-auto">
                   <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl border ${skill.border} bg-[#111111] flex items-center justify-center`}>
-                    {skill.img ? (
-                      <img src={skill.img} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
-                    ) : (
-                      skill.icon && <skill.icon className="w-6 h-6 md:w-8 md:h-8 opacity-80" />
-                    )}
+                    <img src={skill.img} alt={skill.label} className="w-6 h-6 md:w-8 md:h-8 opacity-80" onError={(e) => { (e.target as any).style.display = 'none'; }} />
                   </div>
                   <div className="text-center">
                     <div className="text-[9px] md:text-[10px] font-bold text-slate-300 font-mono mb-1">{skill.label}</div>
