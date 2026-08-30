@@ -32,6 +32,10 @@ spec:
       containers:
       - name: app
         image: alpine:latest
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
         command: ["/bin/sh", "-c"]
         args:
         - |

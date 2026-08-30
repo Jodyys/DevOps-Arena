@@ -30,6 +30,10 @@ spec:
       containers:
         - name: postgres
           image: postgres:15-alpine
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
           env:
             - name: POSTGRES_USER
               value: "devops_arena"
@@ -59,6 +63,10 @@ spec:
       containers:
         - name: backend
           image: postgres:15-alpine
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
           env:
             - name: DB_HOST
               value: "wrong-db-service"

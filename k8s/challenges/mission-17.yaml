@@ -32,6 +32,10 @@ spec:
       containers:
       - name: alpine
         image: alpine:latest
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
         command: ["/bin/sh", "-c", "if [ \"$(cat /config/APP_ENV)\" = \"production\" ]; then while true; do sleep 3600; done; else exit 1; fi"]
         volumeMounts:
         - name: config-volume

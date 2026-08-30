@@ -21,6 +21,10 @@ spec:
       containers:
       - name: alpine
         image: node:18-alpine
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
         command: ["/bin/sh", "-c"]
         args:
           - |

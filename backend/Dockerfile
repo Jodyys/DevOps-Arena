@@ -10,6 +10,7 @@ COPY . .
 # If there was a build step, it would go here. For Express, we just copy.
 
 FROM node:20-alpine AS runner
+RUN apk update && apk upgrade --no-cache
 WORKDIR /app
 
 ENV NODE_ENV production
