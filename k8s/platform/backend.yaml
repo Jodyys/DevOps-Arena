@@ -45,6 +45,8 @@ spec:
           volumeMounts:
             - name: challenges-volume
               mountPath: /k8s/challenges
+            - name: tmp-volume
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /health
@@ -68,6 +70,8 @@ spec:
         - name: challenges-volume
           configMap:
             name: backend-challenges-cm
+        - name: tmp-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

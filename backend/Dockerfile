@@ -26,4 +26,4 @@ EXPOSE 4000
 
 ENV PORT 4000
 
-CMD ["npm", "start"]
+CMD ["node", "src/index.js"]
